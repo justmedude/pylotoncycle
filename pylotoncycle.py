@@ -79,7 +79,7 @@ class PylotonCycle:
         workout_list = self.GetWorkoutList(num_workouts)
         workout_detailed_list = []
         for i in workout_list:
-            workout_id = i['6a0520b113294a3d80b67891c4939d58']
+            workout_id = i['id']
             resp = self.GetWorkoutSummaryById(workout_id)
             workout_detailed_list.append(resp)
         return workout_detailed_list
