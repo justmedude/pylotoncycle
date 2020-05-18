@@ -11,6 +11,16 @@ myself to too many external parties. As I've been playing with other libraries
 out there, I wanted something that was a bit more intuitive and would play
 nicer with the rest of my python code. So, PylotonCycle is born.
 
+## Example Usage
+```
+import pylotoncycle
+
+username = 'your username or email address'
+password = 'your password'
+conn = pylotoncycle.PylotonCycle(username, password)
+workouts = conn.GetRecentWorkouts(5)
+```
+
 ## TODO
 * Lots more to cover. I want to find the right format for pulling in the
 ride performance data.
