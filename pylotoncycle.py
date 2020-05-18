@@ -17,6 +17,8 @@ class PylotonCycle:
         }
 
         self.userid = None
+        self.instructor_id_dict = {}
+
         self.login(username, password)
 
     def login(self, username, password):
@@ -31,7 +33,7 @@ class PylotonCycle:
         }
         resp = self.s.post(
             auth_login_url, json=auth_payload, headers=headers).json()
-        self.id = resp['user_id']
+        self.userid = resp['user_id']
         self.total_workouts = resp['user_data']['total_workouts']
         # pprint.pprint(resp.json())
 
@@ -39,7 +41,7 @@ class PylotonCycle:
         url = '%s/api/me' % self.base_url
         resp = self.s.get(url).json()
         self.username = resp['username']
-        self.id = resp['id']
+        self.userid = resp['id']
         self.total_workouts = resp['total_workouts']
         return resp
 
@@ -57,7 +59,7 @@ class PylotonCycle:
 
         base_workout_url = \
             '%s/api/user/%s/workouts?sort_by=-created' % (
-                self.base_url, self.id)
+                self.base_url, self.userid)
 
         workout_list = []
         current_page = 0
@@ -75,14 +77,22 @@ class PylotonCycle:
 
         return workout_list
 
-    def GetRecentWorkoutSummaries(self, num_workouts=None):
+    def GetRecentWorkouts(self, num_workouts=None):
         workout_list = self.GetWorkoutList(num_workouts)
-        workout_detailed_list = []
+        workouts_info = []
+
         for i in workout_list:
             workout_id = i['id']
-            resp = self.GetWorkoutSummaryById(workout_id)
-            workout_detailed_list.append(resp)
-        return workout_detailed_list
+
+            resp_summary = self.GetWorkoutSummaryById(workout_id)
+            resp_workout = self.GetWorkoutById(workout_id)
+            instructor_id = resp_workout['ride']['instructor_id']
+            resp_instructor = self.GetInstructorById(instructor_id)
+
+            resp_workout['overall_summary'] = resp_summary
+            resp_workout['instructor_name'] = resp_instructor['name']
+            workouts_info.append(resp_workout)
+        return workouts_info
 
     def GetWorkoutSummaryById(self, workout_id):
         url = '%s/api/workout/%s/summary' % (self.base_url, workout_id)
@@ -100,11 +110,20 @@ class PylotonCycle:
         resp = self.GetUrl(url)
         return resp
 
-    def GetWorkoutInfo(self, workout_id):
-        workout_dict = self.GetWorkoutById(workout_id)
-        workout_dict['overall_summary'] = \
-            self.GetWorkoutSummaryById(workout_id)
-        return workout_dict
+    def GetInstructorById(self, instructor_id):
+        if instructor_id in self.instructor_id_dict:
+            return self.instructor_id_dict[instructor_id]
+
+        url = '%s/api/instructor/%s' % (self.base_url, instructor_id)
+        resp = self.GetUrl(url)
+        self.instructor_id_dict[instructor_id] = resp
+        return resp
+
+    # def GetWorkoutInfo(self, workout_id):
+    #     workout_dict = self.GetWorkoutById(workout_id)
+    #     workout_dict['overall_summary'] = \
+    #         self.GetWorkoutSummaryById(workout_id)
+    #     return workout_dict
 
     def ParseMetricsData(self, metrics_data):
         # TODO
