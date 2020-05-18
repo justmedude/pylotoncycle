@@ -16,6 +16,11 @@ class PylotonCycle:
             'User-Agent': 'pyloton'
         }
 
+        # Initialize a couple of variables that will get reused
+        # userid - our userid
+        # instructor_id_dict - dictionary that will allow us to cache
+        #                      information
+        #                      format is: instructor_id : instructor_dict
         self.userid = None
         self.instructor_id_dict = {}
 
@@ -35,7 +40,6 @@ class PylotonCycle:
             auth_login_url, json=auth_payload, headers=headers).json()
         self.userid = resp['user_id']
         self.total_workouts = resp['user_data']['total_workouts']
-        # pprint.pprint(resp.json())
 
     def GetMe(self):
         url = '%s/api/me' % self.base_url
@@ -50,6 +54,12 @@ class PylotonCycle:
         return resp
 
     def GetWorkoutList(self, num_workouts=None):
+        '''
+        Generally, not intended to call this directly, but
+        rather through a helper function.
+        num_workouts - specify the X most recent workouts to fetch. If left
+                       as None, it will fetch all the workouts
+        '''
         if num_workouts is None:
             num_workouts = self.total_workouts
 
