@@ -3,6 +3,8 @@
 # endpoint info derived from
 # https://github.com/philosowaffle/postman_collections/blob/master/PelotonCycle/
 
+# https://app.swaggerhub.com/apis/DovOps/peloton-unofficial-api/0.2.3
+
 # import pprint
 import requests
 
@@ -100,7 +102,10 @@ class PylotonCycle:
             resp_instructor = self.GetInstructorById(instructor_id)
 
             resp_workout['overall_summary'] = resp_summary
-            resp_workout['instructor_name'] = resp_instructor['name']
+            try:
+                resp_workout['instructor_name'] = resp_instructor['name']
+            except KeyError:
+                resp_workout['instructor_name'] = None
             workouts_info.append(resp_workout)
         return workouts_info
 
