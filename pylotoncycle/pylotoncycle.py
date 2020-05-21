@@ -134,21 +134,9 @@ class PylotonCycle:
         self.instructor_id_dict[instructor_id] = resp
         return resp
 
-    # def GetWorkoutInfo(self, workout_id):
-    #     workout_dict = self.GetWorkoutById(workout_id)
-    #     workout_dict['overall_summary'] = \
-    #         self.GetWorkoutSummaryById(workout_id)
-    #     return workout_dict
-
     def ParseMetricsData(self, metrics_data):
         # TODO
         pass
-        # ride_metrics_dict = {}
-        # ride_metrics = metrics_data['metrics']
-        # metrics_chunks = metrics_data['seconds_since_pedaling_start']
-        # number_of_chunks = len(metrics_chunks)
-        # for i in range(0, number_of_chunks):
-        #     ride_metrics_dict[i] =
 
 
 if __name__ == '__main__':
