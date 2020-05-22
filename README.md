@@ -147,6 +147,19 @@ An example of a list element
  'user_id': '<some id hash>',
  'workout_type': 'class'}
 ```
+
+An example of how you may fetch performance data for a ride
+```
+import pprint
+
+conn = pylotoncycle.PylotonCycle(username, password)
+workouts = conn.GetRecentWorkouts(5)
+for w in workouts:
+    workout_id = w['id']
+    resp = conn.GetWorkoutMetricsById(workout_id)
+    pprint.pprint(resp)
+
+```
 ## TODO
 * Lots more to cover. I want to find the right format for pulling in the
 ride performance data.
