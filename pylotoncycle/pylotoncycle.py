@@ -134,6 +134,13 @@ class PylotonCycle:
         self.instructor_id_dict[instructor_id] = resp
         return resp
 
+    def GetFollowersById(self, userid=None):
+        if userid == None:
+            userid = self.userid
+        url = '%s/api/user/%s/followers' % (self.base_url, userid)
+        resp = self.GetUrl(url)
+        return resp
+
     def ParseMetricsData(self, metrics_data):
         # TODO
         pass
