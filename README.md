@@ -161,6 +161,13 @@ for w in workouts:
     pprint.pprint(resp)
 
 ```
+
+## Install
+This package is available via pip install.
+```
+pip install pylotoncycle
+```
+
 ## TODO
 * Lots more to cover. I want to find the right format for pulling in the
 ride performance data.
