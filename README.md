@@ -21,6 +21,7 @@ password = 'your password'
 conn = pylotoncycle.PylotonCycle(username, password)
 workouts = conn.GetRecentWorkouts(5)
 ```
+`workouts` is a list of workouts.
 
 An example of a list element
 
