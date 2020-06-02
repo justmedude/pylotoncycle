@@ -114,9 +114,9 @@ class PylotonCycle:
         resp = self.GetUrl(url)
         return resp
 
-    def GetWorkoutMetricsById(self, workout_id):
-        url = '%s/api/workout/%s/performance_graph' % (
-            self.base_url, workout_id)
+    def GetWorkoutMetricsById(self, workout_id, frequency=50):
+        url = '%s/api/workout/%s/performance_graph?every_n=%s' % (
+            self.base_url, workout_id, frequency)
         resp = self.GetUrl(url)
         return resp
 
@@ -135,7 +135,7 @@ class PylotonCycle:
         return resp
 
     def GetFollowersById(self, userid=None):
-        if userid == None:
+        if userid is None:
             userid = self.userid
         url = '%s/api/user/%s/followers' % (self.base_url, userid)
         resp = self.GetUrl(url)
