@@ -3,6 +3,7 @@
 
 ## Table of contents
 * [General info](#general-info)
+* [Example Usage](#example-usage)
 
 ## General info
 As someone who wants to see my progress over time, I've been wanting a way
