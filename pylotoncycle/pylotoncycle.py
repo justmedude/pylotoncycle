@@ -103,7 +103,9 @@ class PylotonCycle:
                 instructor_id = resp_workout['ride']['instructor_id']
                 resp_instructor = self.GetInstructorById(instructor_id)
             elif 'instructor' in resp_workout['ride']:
-                resp_instructor = {'name': resp_workout['ride']['instructor']['name']}
+                resp_instructor = {
+                    'name': resp_workout['ride']['instructor']['name']
+                }
 
             resp_workout['overall_summary'] = resp_summary
             try:
