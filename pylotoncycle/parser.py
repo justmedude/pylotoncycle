@@ -44,6 +44,7 @@ def ParseCyclingMetrics(json_resp):
         counter += 1
     return perf_dict
 
+
 def ParseOutdoorRunMetrics(json_resp):
     # duration = json_resp['duration']
 
@@ -54,8 +55,8 @@ def ParseOutdoorRunMetrics(json_resp):
         segment_name = i['name']
         segment_metrics_type = i['metrics_type']
         segment_dict[segment_id] = {
-            'segment_name' : segment_name,
-            'segment_metrics_type' : segment_metrics_type
+            'segment_name': segment_name,
+            'segment_metrics_type': segment_metrics_type
         }
 
     perf_dict = {}
@@ -68,6 +69,7 @@ def ParseOutdoorRunMetrics(json_resp):
             seconds_offset_from_start = datapoint['seconds_offset_from_start']
             perf_dict[seconds_offset_from_start] = datapoint
             perf_dict[seconds_offset_from_start]['segment_name'] = segment_name
-            perf_dict[seconds_offset_from_start]['segment_metrics_type'] = segment_metrics_type
+            perf_dict[seconds_offset_from_start]['segment_metrics_type'] = \
+                segment_metrics_type
 
     return perf_dict
