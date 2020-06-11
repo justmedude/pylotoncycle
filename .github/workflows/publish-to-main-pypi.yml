@@ -1,4 +1,4 @@
-name: Upload Python Package
+name: Publish to main PyPi
 
 on:
   release:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   build-n-publish:
-    name: Build and publish Python distributions to TestPyPi
+    name: Build and publish Python distributions to PyPi
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
@@ -14,7 +14,7 @@ jobs:
       uses: actions/setup-python@v1
       with:
         python-version: 3.7
-    - name: Install setuptools
+    - name: Install setuptools and wheel
       run: >-
         python3 -m
         pip install
@@ -26,7 +26,6 @@ jobs:
         setup.py
         sdist bdist_wheel
     - name: Publish distribution to PyPI
-      if: startsWith(github.event.ref, 'refs/tags')
       uses: pypa/gh-action-pypi-publish@master
       with:
         password: ${{ secrets.pypi_password }}
