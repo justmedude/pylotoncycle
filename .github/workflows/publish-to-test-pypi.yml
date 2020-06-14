@@ -3,24 +3,20 @@ on: push
 jobs:
   build-n-publish:
     name: Build and publish Python distributions to TestPyPi
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v1
+    - name: Set up Python
+      uses: actions/setup-python@v2
       with:
-        python-version: 3.7
+        python-version: '3.x'
     - name: Install setuptools and wheel
-      run: >-
-        python3 -m
-        pip install
-        --user
-        setuptools wheel
+      run: |
+        python3 -m pip install --upgrade pip
+        pip install --user setuptools wheel
     - name: Build a binary wheel and a source tarball
-      run: >-
-        python3
-        setup.py
-        sdist bdist_wheel
+      run: |
+        python3 setup.py sdist bdist_wheel
     - name: Publist distribution to Test PyPI
       uses: pypa/gh-action-pypi-publish@master
       with:
