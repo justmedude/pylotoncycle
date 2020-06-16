@@ -11,7 +11,7 @@ def ParseCyclingMetrics(json_resp):
     # Initially, we know the duration of the ride, so we use that and init
     # all segments as None
     segment_dict = {}
-    for i in range(0, duration):
+    for i in range(0, duration + 1):
         segment_dict[i] = None
 
     # Now, for every segment that is listed, we want to map into segment_dict
