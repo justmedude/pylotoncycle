@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-
-
 def ParseCyclingMetrics(json_resp):
     duration = json_resp['duration']
 
