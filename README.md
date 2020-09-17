@@ -1,5 +1,5 @@
 # PylotonCycle
-> Python Library for getting your Peloton workout data
+Python Library for getting your Peloton workout data.
 
 ## Table of contents
 * [General info](#general-info)
