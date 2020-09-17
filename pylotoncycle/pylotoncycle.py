@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # endpoint info derived from
 # https://github.com/philosowaffle/postman_collections/blob/master/PelotonCycle/
 
