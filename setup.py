@@ -12,7 +12,7 @@ setuptools.setup(
     url='https://github.com/justmedude/pylotoncycle',
     author='Vikram Adukia',
     author_email='github@fireitup.net',
-    license='MIT',
+    license='BSD',
     packages=['pylotoncycle'],
     install_requires=['requests'],
 
