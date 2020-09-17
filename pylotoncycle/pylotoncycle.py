@@ -39,20 +39,20 @@ class PylotonCycle:
             'User-Agent': 'pyloton'
         }
         resp = self.s.post(
-            auth_login_url, json=auth_payload, headers=headers).json()
+            auth_login_url, json=auth_payload, headers=headers, timeout=10).json()
         self.userid = resp['user_id']
         self.total_workouts = resp['user_data']['total_workouts']
 
     def GetMe(self):
         url = '%s/api/me' % self.base_url
-        resp = self.s.get(url).json()
+        resp = self.s.get(url, timeout=10).json()
         self.username = resp['username']
         self.userid = resp['id']
         self.total_workouts = resp['total_workouts']
         return resp
 
     def GetUrl(self, url):
-        resp = self.s.get(url).json()
+        resp = self.s.get(url, timeout=10).json()
         return resp
 
     def GetWorkoutList(self, num_workouts=None):
@@ -78,13 +78,13 @@ class PylotonCycle:
         for i in range(0, pages):
             url = '%s&page=%s&limit=%s' % (
                 base_workout_url, current_page, limit)
-            resp = self.s.get(url).json()
+            resp = self.s.get(url, timeout=10).json()
             workout_list.extend(resp['data'])
             current_page += 1
 
         if rem != 0:
             url = '%s&page=%s&limit=%s' % (base_workout_url, current_page, rem)
-            resp = self.s.get(url).json()
+            resp = self.s.get(url, timeout=10).json()
             workout_list.extend(resp['data'])
 
         return workout_list
