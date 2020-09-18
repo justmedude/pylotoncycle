@@ -37,7 +37,8 @@ class PylotonCycle:
             'User-Agent': 'pyloton'
         }
         resp = self.s.post(
-            auth_login_url, json=auth_payload, headers=headers, timeout=10).json()
+            auth_login_url,
+            json=auth_payload, headers=headers, timeout=10).json()
         self.userid = resp['user_id']
         self.total_workouts = resp['user_data']['total_workouts']
 
