@@ -7,6 +7,10 @@
 import requests
 
 
+class PelotonLoginException(Exception):
+    pass
+
+
 class PylotonCycle:
     def __init__(self, username, password):
         self.base_url = 'https://api.onepeloton.com'
@@ -39,6 +43,11 @@ class PylotonCycle:
         resp = self.s.post(
             auth_login_url,
             json=auth_payload, headers=headers, timeout=10).json()
+
+        if (('status' in resp) and (resp['status'] == 401)):
+            raise PelotonLoginException(resp['message'] if ('message' in resp)
+                  else "Login Failed")
+
         self.userid = resp['user_id']
         self.total_workouts = resp['user_data']['total_workouts']
 
