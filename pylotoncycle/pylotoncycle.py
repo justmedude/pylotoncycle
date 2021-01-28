@@ -74,7 +74,7 @@ class PylotonCycle:
             num_workouts = self.total_workouts
 
         limit = 100
-        pages = num_workouts // limit
+        pages = ( num_workouts // limit ) + ( num_workouts % limit > 0 )
 
         base_workout_url = \
             '%s/api/user/%s/workouts?sort_by=-created' % (
