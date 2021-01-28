@@ -82,7 +82,7 @@ class PylotonCycle:
 
         workout_list = []
         current_page = 0
-        for i in range(0, pages+1):
+        for i in range(0, pages):
             url = '%s&page=%s&limit=%s' % (
                 base_workout_url, current_page, limit)
             resp = self.s.get(url, timeout=10).json()
