@@ -74,10 +74,8 @@ class PylotonCycle:
             num_workouts = self.total_workouts
 
         limit = 100
-        pages = ( num_workouts // limit )
-        if pages % limit > 0:
-            # A partial page of workouts exists, increment by 1
-            pages += 1
+        pages = num_workouts // limit
+        rem = num_workouts % limit
 
         base_workout_url = \
             '%s/api/user/%s/workouts?sort_by=-created' % (
@@ -91,6 +89,11 @@ class PylotonCycle:
             resp = self.s.get(url, timeout=10).json()
             workout_list.extend(resp['data'])
             current_page += 1
+
+        if rem != 0:
+            url = '%s&page=%s&limit=%s' % (base_workout_url, current_page, rem)
+            resp = self.s.get(url, timeout=10).json()
+            workout_list.extend(resp['data'])
 
         return workout_list
 
