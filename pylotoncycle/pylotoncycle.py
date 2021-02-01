@@ -91,10 +91,13 @@ class PylotonCycle:
             workout_list.extend(resp['data'])
             current_page += 1
 
+        # if we have a remainder to fetch, then do another
+        # call and extend on only that numbder of results
         if rem != 0:
-            url = '%s&page=%s&limit=%s' % (base_workout_url, current_page, rem)
+            url = '%s&page=%s&limit=%s' % (
+                base_workout_url, current_page, limit)
             resp = self.s.get(url, timeout=10).json()
-            workout_list.extend(resp['data'])
+            workout_list.extend(resp['data'][0:rem])
 
         return workout_list
 
