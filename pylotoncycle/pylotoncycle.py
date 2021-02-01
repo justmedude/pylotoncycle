@@ -17,7 +17,7 @@ class PylotonCycle:
         self.s = requests.Session()
         self.headers = {
             'Content-Type': 'application/json',
-            'User-Agent': 'pyloton'
+            'User-Agent': 'pylotoncycle'
         }
 
         # Initialize a couple of variables that will get reused
