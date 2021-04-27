@@ -49,7 +49,6 @@ class PylotonCycle:
                   else "Login Failed")
 
         self.userid = resp['user_id']
-        self.total_workouts = resp['user_data']['total_workouts']
 
     def GetMe(self):
         url = '%s/api/me' % self.base_url
@@ -71,6 +70,7 @@ class PylotonCycle:
                        as None, it will fetch all the workouts
         '''
         if num_workouts is None:
+            self.GetMe()
             num_workouts = self.total_workouts
 
         limit = 100
