@@ -128,7 +128,7 @@ class PylotonCycle:
         return workouts_info
 
     def GetWorkoutSummaryById(self, workout_id):
-        url = '%s/api/workout/%s/summary' % (self.base_url, workout_id)
+        url = '%s/api/workout/%s' % (self.base_url, workout_id)
         resp = self.GetUrl(url)
         return resp
 
