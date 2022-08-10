@@ -173,3 +173,6 @@ pip install pylotoncycle
 * Lots more to cover. I want to find the right format for pulling in the
 ride performance data.
 * Pull in GPS data for outdoor runs
+
+## Note to folks who want to contribute
+I'm very happy to take pull requests and fix bugs that come up. But, this is definitely a side project for me.
