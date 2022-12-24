@@ -4,6 +4,8 @@
 # https://app.swaggerhub.com/apis/DovOps/peloton-unofficial-api/0.2.3
 
 # import pprint
+from pathlib import Path, PurePath
+import csv
 import requests
 
 
@@ -101,6 +103,15 @@ class PylotonCycle:
 
         return workout_list
 
+    def GetWorkoutCSV(self, path=None):
+        workouts_url = f'{self.base_url}/api/user/{self.userid}/workout_history_csv?timezone=America/New_York'
+        resp = self.s.get(workouts_url, headers=self.headers, timeout=10)
+        p = Path(path).joinpath('workouts.csv') if path else PurePath('workouts.csv')
+        writer = csv.writer(open(p, 'w'))
+        for row in csv.reader(resp.text.splitlines()):
+            writer.writerow(row)
+        return resp
+    
     def GetRecentWorkouts(self, num_workouts=None):
         workout_list = self.GetWorkoutList(num_workouts)
         workouts_info = []
