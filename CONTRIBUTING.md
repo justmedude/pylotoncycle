@@ -10,3 +10,4 @@ pull request quickly. A few things that will help out the process:
 
 * Please have your changes pass a standard `flake8` run.
 * Bias towards python3 compatibility
+* Format using `black -l 79`
