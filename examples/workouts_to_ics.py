@@ -107,9 +107,9 @@ if __name__ == "__main__":
     else:
         if not username or not password:
             raise ValueError("Peloton username and password are required.")
-        print("Attempting to connect...", file=sys.stderr))
+        print("Attempting to connect...", file=sys.stderr)
         conn = pylotoncycle.PylotonCycle(username, password)
-        print("Connected.", file=sys.stderr))
+        print("Connected.", file=sys.stderr)
         workouts = conn.GetRecentWorkouts(num_workouts=args.num_results)
 
     if output_json:
