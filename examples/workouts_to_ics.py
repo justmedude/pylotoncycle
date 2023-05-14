@@ -2,8 +2,18 @@
 
 """
 workouts_to_ics.py
-Example usage of using pylotoncycle to pull in your workouts and output
-them to a ICS iCalendar (RFC 2445) file.
+Convert Peloton workouts to iCalendar (RFC 2445) format.
+
+This script utilizes the pylotoncycle library to fetch recent workouts and
+outputs them to an ICS file that can be imported into calendar applications.
+
+Example usage:
+    python workouts_to_ics.py --username <username> --password <password>
+
+Dependencies:
+    - pylotoncycle
+    - icalendar
+
 """
 import os
 import sys
@@ -15,6 +25,13 @@ from icalendar import Calendar, Event
 import pylotoncycle
 
 def parse_command_line():
+    """
+    Parse command-line arguments.
+
+    Returns:
+        argparse.Namespace: An object containing parsed command-line arguments.
+
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument('--username', help='Peloton username')
     parser.add_argument('--password', help='Peloton password')
@@ -26,7 +43,17 @@ def parse_command_line():
     return parser.parse_args()
 
 
-def generate_description(workout):
+def generate_description(workout, silent=False):
+    """
+    Generate the description for a workout.
+
+    Args:
+        workout (dict): The workout data.
+
+    Returns:
+        tuple: A tuple containing the generated description (str) and the error (Exception) if any.
+
+    """
     ride = workout['ride']
     leaderboard_rank = workout.get('leaderboard_rank', 'N/A')
     total_leaderboard_users = workout.get('total_leaderboard_users', 'N/A')
@@ -47,12 +74,24 @@ def generate_description(workout):
             description += f"Description: {ride.get('description', 'N/A')}"
         return description, None
     except Exception as err:
-        print(f"Error: {err}", file=sys.stderr)
-        traceback.print_exc()
+        if not silent:
+            print(f"Error: {err}", file=sys.stderr)
+            traceback.print_exc()
         return "Unknown Description", err
 
 
 def convert_to_ical(workouts, calendar_name='Peloton Workouts'):
+    """
+    Convert workouts to iCalendar format.
+
+    Args:
+        workouts (list): List of workout data.
+        calendar_name (str, optional): Name of the calendar. Defaults to 'Peloton Workouts'.
+
+    Returns:
+        str: The generated iCalendar data.
+
+    """
     cal = Calendar()
     cal.add('VERSION', '2.0')
     cal.add('PRODID', '-//pylotoncycle workouts_to_ics.py//EN')
