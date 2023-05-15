@@ -53,6 +53,11 @@ class PylotonCycle:
         self.total_workouts = resp["total_workouts"]
         return resp
 
+    def GetSettings(self):
+        url = "%s/api/user/%s/settings" % (self.base_url, self.userid)
+        resp = self.s.get(url, timeout=10).json()
+        return resp
+
     def GetUrl(self, url):
         resp = self.s.get(url, timeout=10).json()
         return resp
