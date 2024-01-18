@@ -115,7 +115,7 @@ class PylotonCycle:
         for i in workout_list:
             workout_id = i["id"]
 
-            resp_summary = self.GetWorkoutSummaryById(workout_id)
+            performance_graph = self.GetWorkoutMetricsById(workout_id)
             resp_workout = self.GetWorkoutById(workout_id)
 
             if "instructor_id" in resp_workout["ride"]:
@@ -126,7 +126,7 @@ class PylotonCycle:
                     "name": resp_workout["ride"]["instructor"]["name"]
                 }
 
-            resp_workout["overall_summary"] = resp_summary
+            resp_workout["performance_graph"] = performance_graph
             try:
                 resp_workout["instructor_name"] = resp_instructor["name"]
             except KeyError:
@@ -140,10 +140,13 @@ class PylotonCycle:
         return resp
 
     def GetWorkoutMetricsById(self, workout_id, frequency=50):
-        url = "%s/api/workout/%s/performance_graph?every_n=%s" % (
+        performance_frequency = (
+            "?every_n=%s" % (frequency) if frequency > 0 else ""
+        )
+        url = "%s/api/workout/%s/performance_graph%s" % (
             self.base_url,
             workout_id,
-            frequency,
+            performance_frequency,
         )
         resp = self.GetUrl(url)
         return resp
