@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pylotoncycle",
-    version="0.7.0",
+    version="0.8.0",
     description="Module to access your Peloton workout data",
     long_description=long_description,
     long_description_content_type="text/markdown",
