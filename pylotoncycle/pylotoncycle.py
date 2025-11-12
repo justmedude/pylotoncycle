@@ -31,7 +31,7 @@ class PylotonCycle:
         self.login(username, password)
 
     def login(self, username, password):
-        auth_login_url = "%s/auth/login" % self.base_url
+        auth_login_url = "%s/auth/login?=" % self.base_url
         auth_payload = {"username_or_email": username, "password": password}
         headers = {"Content-Type": "application/json", "User-Agent": "pyloton"}
         resp = self.s.post(
