@@ -18,6 +18,7 @@ class PylotonCycle:
         self.headers = {
             "Content-Type": "application/json",
             "User-Agent": "pylotoncycle",
+            "Authorization": password,
         }
 
         # Initialize a couple of variables that will get reused
@@ -28,7 +29,7 @@ class PylotonCycle:
         self.userid = None
         self.instructor_id_dict = {}
 
-        self.login(username, password)
+        self.GetMe()
 
     def login(self, username, password):
         auth_login_url = "%s/auth/login?=" % self.base_url
@@ -47,7 +48,7 @@ class PylotonCycle:
 
     def GetMe(self):
         url = "%s/api/me" % self.base_url
-        resp = self.s.get(url, timeout=10).json()
+        resp = self.s.get(url, headers=self.headers, timeout=10).json()
         self.username = resp["username"]
         self.userid = resp["id"]
         self.total_workouts = resp["total_workouts"]
@@ -55,11 +56,11 @@ class PylotonCycle:
 
     def GetSettings(self):
         url = "%s/api/user/%s/settings" % (self.base_url, self.userid)
-        resp = self.s.get(url, timeout=10).json()
+        resp = self.s.get(url, headers=self.headers,timeout=10).json()
         return resp
 
     def GetUrl(self, url):
-        resp = self.s.get(url, timeout=10).json()
+        resp = self.s.get(url, headers=self.headers, timeout=10).json()
         return resp
 
     def GetWorkoutList(self, num_workouts=None):
@@ -91,7 +92,7 @@ class PylotonCycle:
                 current_page,
                 limit,
             )
-            resp = self.s.get(url, timeout=10).json()
+            resp = self.s.get(url, headers=self.headers,timeout=10).json()
             workout_list.extend(resp["data"])
             current_page += 1
 
@@ -103,7 +104,7 @@ class PylotonCycle:
                 current_page,
                 limit,
             )
-            resp = self.s.get(url, timeout=10).json()
+            resp = self.s.get(url,headers=self.headers, timeout=10).json()
             workout_list.extend(resp["data"][0:rem])
 
         return workout_list
@@ -136,7 +137,7 @@ class PylotonCycle:
 
     def GetWorkoutSummaryById(self, workout_id):
         url = "%s/api/workout/%s" % (self.base_url, workout_id)
-        resp = self.GetUrl(url)
+        resp = self.GetUrl(url,headers=self.headers)
         return resp
 
     def GetWorkoutMetricsById(self, workout_id, frequency=50):
