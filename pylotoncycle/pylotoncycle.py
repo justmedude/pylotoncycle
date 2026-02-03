@@ -5,40 +5,49 @@
 
 from AutoRefreshingSession import AutoRefreshingSession
 
+
 class PelotonLoginException(Exception):
     pass
 
+
 class PylotonCycle:
-    def __init__(self, username=None, password=None,access_token=None, 
-                refresh_token=None, client_id="mgsmWCD0A8Qn6uz6mmqI6qeBNHH9IPwS", 
-                redirect_uri="https://members.onepeloton.com/callback",
-                token_url="https://auth.onepeloton.com/oauth/token"):
+    def __init__(
+        self,
+        username=None,
+        password=None,
+        access_token=None,
+        refresh_token=None,
+        client_id="mgsmWCD0A8Qn6uz6mmqI6qeBNHH9IPwS",
+        redirect_uri="https://members.onepeloton.com/callback",
+        token_url="https://auth.onepeloton.com/oauth/token",
+    ):
         self.base_url = "https://api.onepeloton.com"
         self.userid = None
         self.instructor_id_dict = {}
-        if (access_token and len(access_token) < 10):
+        if access_token and len(access_token) < 10:
             access_token = None
-        if (refresh_token and len(refresh_token) < 10):
+        if refresh_token and len(refresh_token) < 10:
             refresh_token = None
-        if (username and len(username) < 2):
+        if username and len(username) < 2:
             username = None
             password = None
 
         # The session is not initialized until we login and get tokens
         self.s = AutoRefreshingSession(
-            username = username,
-            password = password,
-            access_token = access_token,
-            refresh_token = refresh_token,
-            client_id = client_id,
-            redirect_uri = redirect_uri,
-            token_url = token_url
+            username=username,
+            password=password,
+            access_token=access_token,
+            refresh_token=refresh_token,
+            client_id=client_id,
+            redirect_uri=redirect_uri,
+            token_url=token_url,
         )
         self.GetMe()
         # print(f"Got me, id:{self.userid}")
 
     def GetAuthInfo(self):
         return self.s.get_auth_info()
+
     def GetMe(self):
         url = "%s/api/me" % self.base_url
         # No need to manually handle headers/auth; self.s handles it
@@ -161,6 +170,7 @@ class PylotonCycle:
     def ParseMetricsData(self, metrics_data):
         # TODO
         pass
+
 
 if __name__ == "__main__":
     username = "My_Peloton_User_or_Email"

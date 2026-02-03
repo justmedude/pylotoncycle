@@ -1,12 +1,22 @@
 import requests
 
+
 class AutoRefreshingSession(requests.Session):
     """
     Custom Session that automatically handles OAuth Bearer token injection
     and refreshes the token when a 401 Unauthorized error occurs.
     """
 
-    def __init__(self, username,password, access_token, refresh_token, client_id, redirect_uri, token_url):
+    def __init__(
+        self,
+        username,
+        password,
+        access_token,
+        refresh_token,
+        client_id,
+        redirect_uri,
+        token_url,
+    ):
         super().__init__()
         self.username = username
         self.password = password
@@ -22,7 +32,7 @@ class AutoRefreshingSession(requests.Session):
             "username": self.username,
             "password": self.password,
             "client_id": client_id,
-            "redirect_uri": redirect_uri
+            "redirect_uri": redirect_uri,
         }
 
     def request(self, method, url, *args, **kwargs):
@@ -41,7 +51,9 @@ class AutoRefreshingSession(requests.Session):
                 self._refresh_access_token()
 
                 # Update the header with the new token
-                kwargs["headers"]["Authorization"] = f"Bearer {self.access_token}"
+                kwargs["headers"][
+                    "Authorization"
+                ] = f"Bearer {self.access_token}"
 
                 # Retry the original request
                 response = super().request(method, url, *args, **kwargs)
@@ -49,25 +61,29 @@ class AutoRefreshingSession(requests.Session):
                 # print(f"Token refresh failed: {e}")
                 # If refresh fails, we return the original 401 response
                 # so the caller knows authentication is truly broken.
-                raise Exception (f"Could not obtain a new bearer token. {e}")
+                raise Exception(f"Could not obtain a new bearer token. {e}")
 
         return response
-    
+
     def _login(self):
-        if (not self.username or not self.password):
-            raise Exception ("Could not obtain a new bearer token. No login credentials provided. Update your refresh token.")
+        if not self.username or not self.password:
+            raise Exception(
+                "Could not obtain a new bearer token. No login credentials provided. Update your refresh token."
+            )
         # print ("Attempting using Username/Password")
         payload = {
             "grant_type": "password",
             "client_id": self.client_id,
             "scope": "offline_access openid",
             "username": self.username,
-            "password": self.password
+            "password": self.password,
         }
         resp = requests.post(self.token_url, json=payload, timeout=10)
 
         if resp.status_code != 200:
-            raise Exception ("Could not obtain a new bearer token. If using login credentials ensure they are correct. If using a refresh token please update it.")
+            raise Exception(
+                "Could not obtain a new bearer token. If using login credentials ensure they are correct. If using a refresh token please update it."
+            )
 
         data = resp.json()
         data.update(
@@ -83,7 +99,7 @@ class AutoRefreshingSession(requests.Session):
         self.id_token = data["id_token"]
 
     def _refresh_access_token(self):
-        if (not self.refresh_token):
+        if not self.refresh_token:
             self._login()
             return
         # print("Attempting using Refresh Token")
