@@ -13,13 +13,35 @@ out there, I wanted something that was a bit more intuitive and would play
 nicer with the rest of my python code. So, PylotonCycle is born.
 
 ## Example Usage
+An example of how you may fetch performance data for a ride and easily manage credentials.
 ```
 import pylotoncycle
+import json
+import os
+import pprint
+# Copy the sample.auth.json to auth.json and fill in your username and password
+AUTH_FILE = "auth.json"
+def save_dict(d, path=AUTH_FILE):
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(d, f, ensure_ascii=False, indent=4)
 
-username = 'your username or email address'
-password = 'your password'
-conn = pylotoncycle.PylotonCycle(username, password)
+def load_dict(path=AUTH_FILE):
+    if not os.path.exists(path):
+        return {}
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+auth = load_dict()
+conn = pylotoncycle.PylotonCycle(username=auth.get('username'), password=auth.get('password'),
+                    access_token=auth.get('access_token'),refresh_token=auth.get('refresh_token'))
+
 workouts = conn.GetRecentWorkouts(5)
+for w in workouts:
+    workout_id = w['id']
+    resp = conn.GetWorkoutMetricsById(workout_id)
+    pprint.pprint(resp)
+
+save_dict(conn.GetAuthInfo())
 ```
 `workouts` is a list of workouts.
 
@@ -148,36 +170,6 @@ An example of a list element
  'total_work': 322417.21,
  'user_id': '<some id hash>',
  'workout_type': 'class'}
-```
-
-An example of how you may fetch performance data for a ride and easily manage credentials.
-```
-import pylotoncycle
-import json
-import os
-import pprint
-# Copy the sample.auth.json to auth.json and fill in your username and password
-AUTH_FILE = "auth.json"
-def save_dict(d, path=AUTH_FILE):
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(d, f, ensure_ascii=False, indent=4)
-
-def load_dict(path=AUTH_FILE):
-    if not os.path.exists(path):
-        return {}
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-auth = load_dict()
-conn = pylotoncycle.PylotonCycle(username=auth.get('username'), password=auth.get('password'),
-                    access_token=auth.get('access_token'),refresh_token=auth.get('refresh_token'))
-workouts = conn.GetRecentWorkouts(5)
-for w in workouts:
-    workout_id = w['id']
-    resp = conn.GetWorkoutMetricsById(workout_id)
-    pprint.pprint(resp)
-
-save_dict(conn.GetAuthInfo())
 ```
 
 ## Install
