@@ -3,8 +3,7 @@
 
 # https://app.swaggerhub.com/apis/DovOps/peloton-unofficial-api/0.2.3
 
-# import pprint
-import requests
+from .AutoRefreshingSession import AutoRefreshingSession
 
 
 class PelotonLoginException(Exception):
@@ -12,41 +11,46 @@ class PelotonLoginException(Exception):
 
 
 class PylotonCycle:
-    def __init__(self, username, password):
+    def __init__(
+        self,
+        username=None,
+        password=None,
+        access_token=None,
+        refresh_token=None,
+        client_id="mgsmWCD0A8Qn6uz6mmqI6qeBNHH9IPwS",
+        redirect_uri="https://members.onepeloton.com/callback",
+        token_url="https://auth.onepeloton.com/oauth/token",
+    ):
         self.base_url = "https://api.onepeloton.com"
-        self.s = requests.Session()
-        self.headers = {
-            "Content-Type": "application/json",
-            "User-Agent": "pylotoncycle",
-        }
-
-        # Initialize a couple of variables that will get reused
-        # userid - our userid
-        # instructor_id_dict - dictionary that will allow us to cache
-        #                      information
-        #                      format is: instructor_id : instructor_dict
         self.userid = None
         self.instructor_id_dict = {}
+        if access_token and len(access_token) < 10:
+            access_token = None
+        if refresh_token and len(refresh_token) < 10:
+            refresh_token = None
+        if username and len(username) < 2:
+            username = None
+            password = None
 
-        self.login(username, password)
+        # The session is not initialized until we login and get tokens
+        self.s = AutoRefreshingSession(
+            username=username,
+            password=password,
+            access_token=access_token,
+            refresh_token=refresh_token,
+            client_id=client_id,
+            redirect_uri=redirect_uri,
+            token_url=token_url,
+        )
+        self.GetMe()
+        # print(f"Got me, id:{self.userid}")
 
-    def login(self, username, password):
-        auth_login_url = "%s/auth/login?=" % self.base_url
-        auth_payload = {"username_or_email": username, "password": password}
-        headers = {"Content-Type": "application/json", "User-Agent": "pyloton"}
-        resp = self.s.post(
-            auth_login_url, json=auth_payload, headers=headers, timeout=10
-        ).json()
-
-        if ("status" in resp) and (resp["status"] == 401):
-            raise PelotonLoginException(
-                resp["message"] if ("message" in resp) else "Login Failed"
-            )
-
-        self.userid = resp["user_id"]
+    def GetAuthInfo(self):
+        return self.s.get_auth_info()
 
     def GetMe(self):
         url = "%s/api/me" % self.base_url
+        # No need to manually handle headers/auth; self.s handles it
         resp = self.s.get(url, timeout=10).json()
         self.username = resp["username"]
         self.userid = resp["id"]
@@ -63,12 +67,6 @@ class PylotonCycle:
         return resp
 
     def GetWorkoutList(self, num_workouts=None):
-        """
-        Generally, not intended to call this directly, but
-        rather through a helper function.
-        num_workouts - specify the X most recent workouts to fetch. If left
-                       as None, it will fetch all the workouts
-        """
         if num_workouts is None:
             self.GetMe()
             num_workouts = self.total_workouts
@@ -95,8 +93,6 @@ class PylotonCycle:
             workout_list.extend(resp["data"])
             current_page += 1
 
-        # if we have a remainder to fetch, then do another
-        # call and extend on only that numbder of results
         if rem != 0:
             url = "%s&page=%s&limit=%s" % (
                 base_workout_url,
@@ -114,7 +110,6 @@ class PylotonCycle:
 
         for i in workout_list:
             workout_id = i["id"]
-
             performance_graph = self.GetWorkoutMetricsById(workout_id)
             resp_workout = self.GetWorkoutById(workout_id)
 
