@@ -3,7 +3,7 @@
 
 # https://app.swaggerhub.com/apis/DovOps/peloton-unofficial-api/0.2.3
 
-from AutoRefreshingSession import AutoRefreshingSession
+from .AutoRefreshingSession import AutoRefreshingSession
 
 
 class PelotonLoginException(Exception):

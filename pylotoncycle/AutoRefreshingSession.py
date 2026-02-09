@@ -37,7 +37,7 @@ class AutoRefreshingSession(requests.Session):
 
     def request(self, method, url, *args, **kwargs):
         # Inject the Authorization header automatically
-        headers = kwargs.get("headers", {})
+        headers = kwargs.get("headers") or {}
         if self.access_token:
             headers["Authorization"] = f"Bearer {self.access_token}"
         kwargs["headers"] = headers
