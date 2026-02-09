@@ -84,6 +84,11 @@ def convert_to_ical(workouts, calendar_name='Peloton Workouts'):
     """
     Convert workouts to iCalendar format.
 
+    TODO: Support excluding workouts shorter than a specified length (Example: skip short cooldown workouts)
+    TODO: Support local cached copies of the workouts (but note they change over time because
+          the leaderboard gets updated as more do the ride.)
+    TODO: Optionally support iCalendar category field
+
     Args:
         workouts (list): List of workout data.
         calendar_name (str, optional): Name of the calendar. Defaults to 'Peloton Workouts'.
