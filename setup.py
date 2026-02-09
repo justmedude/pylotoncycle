@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pylotoncycle",
-    version="0.9.0",
+    version="0.9.1",
     description="Module to access your Peloton workout data",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -14,7 +14,7 @@ setuptools.setup(
     author_email="github@fireitup.net",
     license="BSD",
     packages=["pylotoncycle"],
-    install_requires=["requests"],
+    install_requires=["requests", "beautifulsoup4"],
     classifiers=[
         "Development Status :: 4 - Beta",
         "Programming Language :: Python :: 3",
