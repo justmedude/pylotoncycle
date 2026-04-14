@@ -49,13 +49,27 @@ class PylotonCycle:
         return self.s.get_auth_info()
 
     def GetMe(self):
-        url = "%s/api/me" % self.base_url
-        # No need to manually handle headers/auth; self.s handles it
-        resp = self.s.get(url, timeout=10).json()
-        self.username = resp["username"]
-        self.userid = resp["id"]
-        self.total_workouts = resp["total_workouts"]
-        return resp
+        url = f"{self.base_url}/api/me"
+        resp = self.s.get(url, timeout=10)
+
+        if resp.status_code != 200:
+            raise PelotonLoginException(
+                f"Failed to get user info: HTTP {resp.status_code}"
+            )
+
+        try:
+            data = resp.json()
+        except ValueError as e:
+            raise PelotonLoginException(f"Invalid API response: {e}")
+
+        try:
+            self.username = data["username"]
+            self.userid = data["id"]
+            self.total_workouts = data["total_workouts"]
+        except KeyError as e:
+            raise PelotonLoginException(f"Missing expected field: {e}")
+
+        return data
 
     def GetSettings(self):
         url = "%s/api/user/%s/settings" % (self.base_url, self.userid)
