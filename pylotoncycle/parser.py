@@ -1,24 +1,48 @@
+"""
+Parser utilities for Peloton workout metrics data.
+
+Provides functions to transform raw API responses into more usable
+data structures indexed by time.
+"""
+
+
 def ParseCyclingMetrics(json_resp):
+    """
+    Parse cycling workout metrics into a time-indexed dictionary.
+
+    Transforms the raw performance graph API response into a dictionary
+    keyed by seconds since pedaling start, with each entry containing
+    all metric values and the current segment name.
+
+    Args:
+        json_resp: Raw JSON response from GetWorkoutMetricsById containing:
+            - duration: Total workout duration in seconds
+            - segment_list: List of workout segments with name, start_time_offset,
+              and length
+            - seconds_since_pedaling_start: List of time points
+            - metrics: List of metric objects with slug and values
+
+    Returns:
+        dict: Dictionary keyed by seconds_since_pedaling_start, where each
+            value is a dict containing metric values (cadence, output, etc.)
+            and 'segment' indicating the current segment name.
+
+    Example:
+        >>> metrics = conn.GetWorkoutMetricsById(workout_id)
+        >>> parsed = ParseCyclingMetrics(metrics)
+        >>> parsed[60]  # Data at 60 seconds
+        {'cadence': 85, 'output': 150, 'segment': 'Warmup'}
+    """
     duration = json_resp["duration"]
 
-    # Initialize a fast lookup dictionary to map seconds of the ride
-    # to a segment.
-    # The format of the dictionary is:
-    # seconds_since_pedaling_start : segment_name
-    # Initially, we know the duration of the ride, so we use that and init
-    # all segments as None
     segment_dict = {}
     for i in range(0, duration + 1):
         segment_dict[i] = None
 
-    # Now, for every segment that is listed, we want to map into segment_dict
-    # what the name of that segment is.
     for i in json_resp["segment_list"]:
         segment_name = i["name"]
         start_time_offset = i["start_time_offset"]
         end_time_offset = start_time_offset + i["length"]
-        # Using our start and end times, map into the segment_dict what
-        # segment name each second corresponds to
         for j in range(start_time_offset, end_time_offset):
             segment_dict[j] = segment_name
 
@@ -45,8 +69,30 @@ def ParseCyclingMetrics(json_resp):
 
 
 def ParseOutdoorRunMetrics(json_resp):
-    # duration = json_resp['duration']
+    """
+    Parse outdoor run metrics into a time-indexed dictionary.
 
+    Transforms the raw performance graph API response for outdoor runs
+    into a dictionary keyed by seconds since start, with GPS coordinates
+    and segment information.
+
+    Args:
+        json_resp: Raw JSON response containing:
+            - segment_list: List of segments with id, name, and metrics_type
+            - location_data: List of segment data with coordinates
+
+    Returns:
+        dict: Dictionary keyed by seconds_offset_from_start, where each
+            value contains the coordinate data plus segment_name and
+            segment_metrics_type fields.
+
+    Example:
+        >>> metrics = conn.GetWorkoutMetricsById(outdoor_run_id)
+        >>> parsed = ParseOutdoorRunMetrics(metrics)
+        >>> parsed[120]  # Data at 2 minutes
+        {'latitude': 40.7128, 'longitude': -74.0060,
+         'segment_name': 'Run', 'segment_metrics_type': 'running'}
+    """
     segment_list = json_resp["segment_list"]
     segment_dict = {}
     for i in segment_list:
@@ -62,12 +108,16 @@ def ParseOutdoorRunMetrics(json_resp):
     for i in json_resp["location_data"]:
         segment_id = i["segment_id"]
         segment_name = segment_dict[segment_id]["segment_name"]
-        segment_metrics_type = segment_dict[segment_id]["segment_metrics_type"]
+        segment_metrics_type = segment_dict[segment_id][
+            "segment_metrics_type"
+        ]
 
         for datapoint in i["coordinates"]:
             seconds_offset_from_start = datapoint["seconds_offset_from_start"]
             perf_dict[seconds_offset_from_start] = datapoint
-            perf_dict[seconds_offset_from_start]["segment_name"] = segment_name
+            perf_dict[seconds_offset_from_start][
+                "segment_name"
+            ] = segment_name
             perf_dict[seconds_offset_from_start][
                 "segment_metrics_type"
             ] = segment_metrics_type

@@ -1,16 +1,46 @@
-# endpoint info derived from
-# https://github.com/philosowaffle/postman_collections/blob/master/PelotonCycle/
+"""
+PylotonCycle - Python library for accessing Peloton workout data.
 
-# https://app.swaggerhub.com/apis/DovOps/peloton-unofficial-api/0.2.3
+Endpoint info derived from:
+- https://github.com/philosowaffle/postman_collections/blob/master/PelotonCycle/
+- https://app.swaggerhub.com/apis/DovOps/peloton-unofficial-api/0.2.3
+"""
 
 from .AutoRefreshingSession import AutoRefreshingSession
 
 
 class PelotonLoginException(Exception):
+    """Exception raised when authentication or user info retrieval fails."""
+
     pass
 
 
 class PylotonCycle:
+    """
+    Main client for interacting with the Peloton API.
+
+    Provides methods to fetch user data, workouts, instructors, and more.
+    Handles OAuth authentication automatically via AutoRefreshingSession.
+
+    Args:
+        username: Peloton account username or email.
+        password: Peloton account password.
+        access_token: OAuth access token (if already obtained).
+        refresh_token: OAuth refresh token (if already obtained).
+        client_id: OAuth client ID.
+        redirect_uri: OAuth redirect URI.
+        token_url: OAuth token endpoint URL.
+
+    Raises:
+        PelotonLoginException: If authentication fails or user info
+            cannot be retrieved.
+
+    Example:
+        >>> conn = PylotonCycle(username="user@example.com",
+        ...                     password="secret")
+        >>> workouts = conn.GetRecentWorkouts(5)
+    """
+
     def __init__(
         self,
         username=None,
@@ -32,7 +62,6 @@ class PylotonCycle:
             username = None
             password = None
 
-        # The session is not initialized until we login and get tokens
         self.s = AutoRefreshingSession(
             username=username,
             password=password,
@@ -43,12 +72,29 @@ class PylotonCycle:
             token_url=token_url,
         )
         self.GetMe()
-        # print(f"Got me, id:{self.userid}")
 
     def GetAuthInfo(self):
+        """
+        Get current authentication information.
+
+        Returns:
+            dict: Authentication data including access_token, refresh_token,
+                username, password, client_id, and redirect_uri.
+        """
         return self.s.get_auth_info()
 
     def GetMe(self):
+        """
+        Fetch and store the current user's profile information.
+
+        Updates instance attributes: username, userid, total_workouts.
+
+        Returns:
+            dict: Full user profile data from the API.
+
+        Raises:
+            PelotonLoginException: If the request fails or response is invalid.
+        """
         url = f"{self.base_url}/api/me"
         resp = self.s.get(url, timeout=10)
 
@@ -72,15 +118,39 @@ class PylotonCycle:
         return data
 
     def GetSettings(self):
+        """
+        Fetch the current user's settings.
+
+        Returns:
+            dict: User settings data from the API.
+        """
         url = "%s/api/user/%s/settings" % (self.base_url, self.userid)
         resp = self.s.get(url, timeout=10).json()
         return resp
 
     def GetUrl(self, url):
+        """
+        Make a GET request to any URL and return JSON response.
+
+        Args:
+            url: The full URL to request.
+
+        Returns:
+            dict: Parsed JSON response.
+        """
         resp = self.s.get(url, timeout=10).json()
         return resp
 
     def GetWorkoutList(self, num_workouts=None):
+        """
+        Fetch a list of workout summaries for the current user.
+
+        Args:
+            num_workouts: Number of workouts to fetch. If None, fetches all.
+
+        Returns:
+            list: List of workout summary dictionaries, sorted by most recent.
+        """
         if num_workouts is None:
             self.GetMe()
             num_workouts = self.total_workouts
@@ -119,6 +189,19 @@ class PylotonCycle:
         return workout_list
 
     def GetRecentWorkouts(self, num_workouts=None):
+        """
+        Fetch detailed workout data including performance metrics.
+
+        For each workout, fetches the full workout details, performance
+        graph data, and instructor information.
+
+        Args:
+            num_workouts: Number of workouts to fetch. If None, fetches all.
+
+        Returns:
+            list: List of workout dictionaries with performance_graph
+                and instructor_name fields added.
+        """
         workout_list = self.GetWorkoutList(num_workouts)
         workouts_info = []
 
@@ -144,11 +227,35 @@ class PylotonCycle:
         return workouts_info
 
     def GetWorkoutSummaryById(self, workout_id):
+        """
+        Fetch workout summary by ID.
+
+        Note: This method is identical to GetWorkoutById and may be
+        deprecated in a future version.
+
+        Args:
+            workout_id: The unique identifier for the workout.
+
+        Returns:
+            dict: Workout summary data.
+        """
         url = "%s/api/workout/%s" % (self.base_url, workout_id)
         resp = self.GetUrl(url)
         return resp
 
     def GetWorkoutMetricsById(self, workout_id, frequency=50):
+        """
+        Fetch performance metrics for a workout.
+
+        Args:
+            workout_id: The unique identifier for the workout.
+            frequency: Sample every N seconds. Use 0 for all data points.
+                Defaults to 50.
+
+        Returns:
+            dict: Performance graph data including metrics like cadence,
+                resistance, output, speed, and heart rate over time.
+        """
         performance_frequency = (
             "?every_n=%s" % (frequency) if frequency > 0 else ""
         )
@@ -161,11 +268,31 @@ class PylotonCycle:
         return resp
 
     def GetWorkoutById(self, workout_id):
+        """
+        Fetch full workout details by ID.
+
+        Args:
+            workout_id: The unique identifier for the workout.
+
+        Returns:
+            dict: Full workout data including ride info, stats, and metadata.
+        """
         url = "%s/api/workout/%s" % (self.base_url, workout_id)
         resp = self.GetUrl(url)
         return resp
 
     def GetInstructorById(self, instructor_id):
+        """
+        Fetch instructor details by ID.
+
+        Results are cached to avoid redundant API calls.
+
+        Args:
+            instructor_id: The unique identifier for the instructor.
+
+        Returns:
+            dict: Instructor profile data.
+        """
         if instructor_id in self.instructor_id_dict:
             return self.instructor_id_dict[instructor_id]
 
@@ -175,6 +302,16 @@ class PylotonCycle:
         return resp
 
     def GetFollowersById(self, userid=None):
+        """
+        Fetch followers for a user.
+
+        Args:
+            userid: The user ID to fetch followers for.
+                Defaults to current user.
+
+        Returns:
+            dict: Follower data including list of followers.
+        """
         if userid is None:
             userid = self.userid
         url = "%s/api/user/%s/followers" % (self.base_url, userid)
@@ -182,7 +319,18 @@ class PylotonCycle:
         return resp
 
     def ParseMetricsData(self, metrics_data):
-        # TODO
+        """
+        Parse raw metrics data into a structured format.
+
+        Note: Not yet implemented. Use ParseCyclingMetrics or
+        ParseOutdoorRunMetrics from pylotoncycle.parser instead.
+
+        Args:
+            metrics_data: Raw metrics data from GetWorkoutMetricsById.
+
+        Returns:
+            None: Not implemented.
+        """
         pass
 
 

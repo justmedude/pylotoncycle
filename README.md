@@ -4,6 +4,8 @@ Python Library for getting your Peloton workout data.
 ## Table of contents
 * [General info](#general-info)
 * [Example Usage](#example-usage)
+* [Install](#install)
+* [Development](#development)
 
 ## General info
 As someone who wants to see my progress over time, I've been wanting a way
@@ -176,6 +178,41 @@ An example of a list element
 This package is available via pip install.
 ```
 pip install pylotoncycle
+```
+
+## Development
+
+### Setup
+```bash
+# Clone the repository
+git clone https://github.com/justmedude/pylotoncycle.git
+cd pylotoncycle
+
+# Create a virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Install development dependencies
+pip install -r requirements-dev.txt
+pip install -e .
+```
+
+### Running Tests
+```bash
+# Run all tests
+pytest
+
+# Run with verbose output
+pytest -v
+
+# Run a specific test file
+pytest tests/test_parser.py
+```
+
+### Code Formatting
+This project uses [Black](https://github.com/psf/black) for code formatting with a line length of 78.
+```bash
+black pylotoncycle/ tests/ --line-length 78
 ```
 
 ## TODO

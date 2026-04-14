@@ -1,3 +1,10 @@
+"""
+Auto-refreshing OAuth session for Peloton API.
+
+Provides a requests.Session subclass that automatically handles
+OAuth Bearer token injection and refresh.
+"""
+
 import requests
 
 
@@ -5,6 +12,20 @@ class AutoRefreshingSession(requests.Session):
     """
     Custom Session that automatically handles OAuth Bearer token injection
     and refreshes the token when a 401 Unauthorized error occurs.
+
+    Extends requests.Session to automatically:
+    - Add Authorization header with Bearer token to all requests
+    - Refresh the access token when receiving a 401 response
+    - Fall back to username/password login if refresh token fails
+
+    Args:
+        username: Peloton account username or email.
+        password: Peloton account password.
+        access_token: Current OAuth access token.
+        refresh_token: OAuth refresh token for obtaining new access tokens.
+        client_id: OAuth client ID.
+        redirect_uri: OAuth redirect URI.
+        token_url: OAuth token endpoint URL.
     """
 
     def __init__(
@@ -36,7 +57,24 @@ class AutoRefreshingSession(requests.Session):
         }
 
     def request(self, method, url, *args, **kwargs):
-        # Inject the Authorization header automatically
+        """
+        Make an HTTP request with automatic token handling.
+
+        Injects the Authorization header and retries with a refreshed
+        token if the server returns 401 Unauthorized.
+
+        Args:
+            method: HTTP method (GET, POST, etc.).
+            url: Request URL.
+            *args: Additional positional arguments for requests.Session.
+            **kwargs: Additional keyword arguments for requests.Session.
+
+        Returns:
+            requests.Response: The HTTP response.
+
+        Raises:
+            Exception: If token refresh fails and request cannot be completed.
+        """
         headers = kwargs.get("headers") or {}
         if self.access_token:
             headers["Authorization"] = f"Bearer {self.access_token}"
@@ -44,33 +82,34 @@ class AutoRefreshingSession(requests.Session):
 
         response = super().request(method, url, *args, **kwargs)
 
-        # auto retry on 401
         if response.status_code == 401:
             try:
-                # print("Access Token expired. Obtaining New Token")
                 self._refresh_access_token()
 
-                # Update the header with the new token
                 kwargs["headers"][
                     "Authorization"
                 ] = f"Bearer {self.access_token}"
 
-                # Retry the original request
                 response = super().request(method, url, *args, **kwargs)
             except Exception as e:
-                # print(f"Token refresh failed: {e}")
-                # If refresh fails, we return the original 401 response
-                # so the caller knows authentication is truly broken.
                 raise Exception(f"Could not obtain a new bearer token. {e}")
 
         return response
 
     def _login(self):
+        """
+        Authenticate using username and password.
+
+        Obtains new access and refresh tokens using the password grant.
+
+        Raises:
+            Exception: If credentials are missing or login fails.
+        """
         if not self.username or not self.password:
             raise Exception(
-                "Could not obtain a new bearer token. No login credentials provided. Update your refresh token."
+                "Could not obtain a new bearer token. "
+                "No login credentials provided. Update your refresh token."
             )
-        # print ("Attempting using Username/Password")
         payload = {
             "grant_type": "password",
             "client_id": self.client_id,
@@ -82,7 +121,9 @@ class AutoRefreshingSession(requests.Session):
 
         if resp.status_code != 200:
             raise Exception(
-                "Could not obtain a new bearer token. If using login credentials ensure they are correct. If using a refresh token please update it."
+                "Could not obtain a new bearer token. "
+                "If using login credentials ensure they are correct. "
+                "If using a refresh token please update it."
             )
 
         data = resp.json()
@@ -99,13 +140,16 @@ class AutoRefreshingSession(requests.Session):
         self.id_token = data["id_token"]
 
     def _refresh_access_token(self):
+        """
+        Refresh the access token using the refresh token.
+
+        If no refresh token is available or refresh fails, falls back
+        to username/password login.
+        """
         if not self.refresh_token:
             self._login()
             return
-        # print("Attempting using Refresh Token")
-        # Calls the API to get a new access token using the refresh token.
-        # We use a standard requests.post here to avoid infinite recursion
-        # if the refresh endpoint itself returns a 401.
+
         payload = {
             "grant_type": "refresh_token",
             "client_id": self.client_id,
@@ -132,4 +176,10 @@ class AutoRefreshingSession(requests.Session):
         self.id_token = data["id_token"]
 
     def get_auth_info(self):
+        """
+        Get current authentication information.
+
+        Returns:
+            dict: Authentication data including tokens and credentials.
+        """
         return self.last_auth

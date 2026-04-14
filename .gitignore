@@ -1,6 +1,28 @@
 # New Authentication file
 auth.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
 *$py.class
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Egg/distribution info
+*.egg-info/
+*.egg
+dist/
+build/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.idea/
+.vscode/
+*.swp
