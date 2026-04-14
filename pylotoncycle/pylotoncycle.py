@@ -210,19 +210,18 @@ class PylotonCycle:
             performance_graph = self.GetWorkoutMetricsById(workout_id)
             resp_workout = self.GetWorkoutById(workout_id)
 
-            if "instructor_id" in resp_workout["ride"]:
-                instructor_id = resp_workout["ride"]["instructor_id"]
-                resp_instructor = self.GetInstructorById(instructor_id)
-            elif "instructor" in resp_workout["ride"]:
-                resp_instructor = {
-                    "name": resp_workout["ride"]["instructor"]["name"]
-                }
+            instructor_name = None
+            ride = resp_workout.get("ride", {})
+            if "instructor_id" in ride:
+                resp_instructor = self.GetInstructorById(
+                    ride["instructor_id"]
+                )
+                instructor_name = resp_instructor.get("name")
+            elif "instructor" in ride:
+                instructor_name = ride["instructor"].get("name")
 
             resp_workout["performance_graph"] = performance_graph
-            try:
-                resp_workout["instructor_name"] = resp_instructor["name"]
-            except KeyError:
-                resp_workout["instructor_name"] = None
+            resp_workout["instructor_name"] = instructor_name
             workouts_info.append(resp_workout)
         return workouts_info
 

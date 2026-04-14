@@ -5,10 +5,8 @@ from pylotoncycle.parser import ParseCyclingMetrics, ParseOutdoorRunMetrics
 
 
 class TestParseCyclingMetrics(unittest.TestCase):
-    """Tests for ParseCyclingMetrics function."""
 
     def test_basic_parsing(self):
-        """Test parsing a simple cycling metrics response."""
         json_resp = {
             "duration": 60,
             "segment_list": [
@@ -36,7 +34,6 @@ class TestParseCyclingMetrics(unittest.TestCase):
         self.assertEqual(result[30]["segment"], "Main")
 
     def test_segment_mapping(self):
-        """Test that segments are correctly mapped to time ranges."""
         json_resp = {
             "duration": 100,
             "segment_list": [
@@ -55,7 +52,6 @@ class TestParseCyclingMetrics(unittest.TestCase):
         self.assertEqual(result[90]["segment"], "Cooldown")
 
     def test_empty_segment_list(self):
-        """Test parsing when there are no segments defined."""
         json_resp = {
             "duration": 30,
             "segment_list": [],
@@ -70,7 +66,6 @@ class TestParseCyclingMetrics(unittest.TestCase):
         self.assertEqual(result[30]["segment"], None)
 
     def test_multiple_metrics(self):
-        """Test parsing multiple metric types."""
         json_resp = {
             "duration": 10,
             "segment_list": [],
@@ -92,10 +87,8 @@ class TestParseCyclingMetrics(unittest.TestCase):
 
 
 class TestParseOutdoorRunMetrics(unittest.TestCase):
-    """Tests for ParseOutdoorRunMetrics function."""
 
     def test_basic_parsing(self):
-        """Test parsing a simple outdoor run metrics response."""
         json_resp = {
             "segment_list": [
                 {"id": "seg1", "name": "Warmup", "metrics_type": "walking"},
@@ -144,7 +137,6 @@ class TestParseOutdoorRunMetrics(unittest.TestCase):
         self.assertEqual(result[60]["segment_metrics_type"], "running")
 
     def test_preserves_coordinate_data(self):
-        """Test that all coordinate data is preserved."""
         json_resp = {
             "segment_list": [
                 {"id": "s1", "name": "Test", "metrics_type": "running"},
