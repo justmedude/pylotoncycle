@@ -126,6 +126,7 @@ class PylotonCycle:
             workout_id = i["id"]
             performance_graph = self.GetWorkoutMetricsById(workout_id)
             resp_workout = self.GetWorkoutById(workout_id)
+            resp_instructor = {"name": None}
 
             if "instructor_id" in resp_workout["ride"]:
                 instructor_id = resp_workout["ride"]["instructor_id"]
