@@ -1,6 +1,61 @@
 import unittest
 from datetime import datetime, timedelta
-from icalendar import Calendar, Event
+from pathlib import Path
+import sys
+import types
+from email.utils import format_datetime
+from xml.etree import ElementTree as ET
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+try:
+    from icalendar import Calendar, Event
+except ImportError:
+    icalendar_stub = types.ModuleType("icalendar")
+
+    class Event:
+        def __init__(self):
+            self.props = []
+
+        def add(self, key, value):
+            self.props.append((key, value))
+
+    class Calendar:
+        def __init__(self):
+            self.props = []
+            self.components = []
+
+        def add(self, key, value):
+            self.props.append((key, value))
+
+        def add_component(self, component):
+            self.components.append(component)
+
+        def to_ical(self):
+            root = ET.Element("calendar")
+            for key, value in self.props:
+                prop = ET.SubElement(root, "property", name=str(key).upper())
+                prop.text = self._stringify(value)
+            for component in self.components:
+                item = ET.SubElement(root, "event")
+                for key, value in component.props:
+                    prop = ET.SubElement(
+                        item, "property", name=str(key).upper()
+                    )
+                    prop.text = self._stringify(value)
+            return ET.tostring(root, encoding="utf-8")
+
+        def _stringify(self, value):
+            if hasattr(value, "tzinfo"):
+                return format_datetime(value)
+            if isinstance(value, bytes):
+                return value.decode("utf-8")
+            return str(value)
+
+    icalendar_stub.Calendar = Calendar
+    icalendar_stub.Event = Event
+    sys.modules["icalendar"] = icalendar_stub
+
 from workouts_to_ics import generate_description, convert_to_ical
 
 
@@ -16,8 +71,8 @@ class TestGenerateDescription(unittest.TestCase):
                 "duration": 1273,
                 "instructor": {
                     "name": "JUST RIDE",
-                    "image_url": "https://s3.amazonaws.com/peloton-ride-images/just-ride-indoor.png"
-                }
+                    "image_url": "https://s3.amazonaws.com/peloton-ride-images/just-ride-indoor.png",
+                },
             },
             "instructor_name": "JUST RIDE",
             "leaderboard_rank": None,
@@ -25,8 +80,8 @@ class TestGenerateDescription(unittest.TestCase):
             "ftp_info": {
                 "ftp": None,
                 "ftp_source": None,
-                "ftp_workout_id": None
-            }
+                "ftp_workout_id": None,
+            },
         }
         expected_description = "21 minute Just Ride"
         description, error = generate_description(workout)
@@ -46,9 +101,7 @@ class TestGenerateDescription(unittest.TestCase):
             "instructor_name": "Emma Lovewell",
             "leaderboard_rank": 2375,
             "total_leaderboard_users": 10267,
-            "ftp_info": {
-                "ftp": 213
-            }
+            "ftp_info": {"ftp": 213},
         }
         expected_description = """Ride Title: 20 min Climb Ride
 Difficulty: 7.7326
@@ -63,7 +116,11 @@ Description: There’s nothing more satisfying than leaving a hill in your dust.
         """
         Test case to verify we get an error back for an invalid workout.
         """
-        workout = {"ride": {}, "instructor_name": "", "ftp_info": { "ftp": None }}
+        workout = {
+            "ride": {},
+            "instructor_name": "",
+            "ftp_info": {"ftp": None},
+        }
         expected_description = "Unknown Description"
         # Pass in silent=True to generate_description since we expect it to raise an exception
         description, error = generate_description(workout, True)
@@ -71,9 +128,7 @@ Description: There’s nothing more satisfying than leaving a hill in your dust.
         self.assertIsInstance(error, Exception)
 
 
-
 class TestConvertToICal(unittest.TestCase):
-
     def test_convert_to_ical_regular_ride(self):
         """
         Test case to verify the conversion of a regular ride workout to iCalendar format.
@@ -83,17 +138,13 @@ class TestConvertToICal(unittest.TestCase):
             "ride": {
                 "title": "20 min Climb Ride",
                 "duration": 1273,
-                "instructor": {
-                    "name": "Emma Lovewell"
-                }
+                "instructor": {"name": "Emma Lovewell"},
             },
             "instructor_name": "Emma Lovewell",
             "fitness_discipline": "cycling",
             "leaderboard_rank": 2375,
             "total_leaderboard_users": 10267,
-            "ftp_info": {
-                "ftp": 213
-            }
+            "ftp_info": {"ftp": 213},
         }
 
         expected_ical_data = self._generate_expected_ical_data(workout)
@@ -112,17 +163,15 @@ class TestConvertToICal(unittest.TestCase):
             "ride": {
                 "title": "21 min Just Ride",
                 "duration": 1273,
-                "instructor": {
-                    "name": "JUST RIDE"
-                }
+                "instructor": {"name": "JUST RIDE"},
             },
             "instructor_name": "JUST RIDE",
             "fitness_discipline": "cycling",
             "ftp_info": {
                 "ftp": None,
                 "ftp_source": None,
-                "ftp_workout_id": None
-            }
+                "ftp_workout_id": None,
+            },
         }
 
         expected_ical_data = self._generate_expected_ical_data(workout)
@@ -143,34 +192,36 @@ class TestConvertToICal(unittest.TestCase):
             str: The expected iCalendar data.
         """
         cal = Calendar()
-        cal.add('VERSION', '2.0')
-        cal.add('PRODID', '-//pylotoncycle workouts_to_ics.py//EN')
-        cal.add('X-WR-CALNAME', 'Peloton Workouts')
+        cal.add("VERSION", "2.0")
+        cal.add("PRODID", "-//pylotoncycle workouts_to_ics.py//EN")
+        cal.add("X-WR-CALNAME", "Peloton Workouts")
 
-        created_at = datetime.fromtimestamp(int(workout['created_at']))
-        end_time = created_at + timedelta(minutes=workout['ride']['duration'] // 60)
-        workout_title = workout['ride'].get('title', 'Untitled')
-        instructor_name = workout['instructor_name']
+        created_at = datetime.fromtimestamp(int(workout["created_at"]))
+        end_time = created_at + timedelta(
+            minutes=workout["ride"]["duration"] // 60
+        )
+        workout_title = workout["ride"].get("title", "Untitled")
+        instructor_name = workout["instructor_name"]
 
         if instructor_name == "JUST RIDE":
-            workout_len = workout['ride']['duration'] // 60
+            workout_len = workout["ride"]["duration"] // 60
             title = f"{workout_len} minute Just Ride"
         else:
             title = f"{workout_title} with {instructor_name}"
 
         event = Event()
-        event.add('summary', title.encode('utf-8'))
-        event.add('dtstart', created_at)
-        event.add('dtend', end_time)
+        event.add("summary", title.encode("utf-8"))
+        event.add("dtstart", created_at)
+        event.add("dtend", end_time)
 
         description, _ = generate_description(workout)
-        event.add('description', description.encode('utf-8'))
+        event.add("description", description.encode("utf-8"))
 
         cal.add_component(event)
-        expected_ical_data = cal.to_ical().decode('utf-8')
+        expected_ical_data = cal.to_ical().decode("utf-8")
 
         return expected_ical_data
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
