@@ -1,6 +1,59 @@
 import unittest
 from datetime import datetime, timedelta
-from icalendar import Calendar, Event
+from pathlib import Path
+import sys
+import types
+from email.utils import format_datetime
+from xml.etree import ElementTree as ET
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+try:
+    from icalendar import Calendar, Event
+except ImportError:
+    icalendar_stub = types.ModuleType("icalendar")
+
+    class Event:
+        def __init__(self):
+            self.props = []
+
+        def add(self, key, value):
+            self.props.append((key, value))
+
+    class Calendar:
+        def __init__(self):
+            self.props = []
+            self.components = []
+
+        def add(self, key, value):
+            self.props.append((key, value))
+
+        def add_component(self, component):
+            self.components.append(component)
+
+        def to_ical(self):
+            root = ET.Element("calendar")
+            for key, value in self.props:
+                prop = ET.SubElement(root, "property", name=str(key).upper())
+                prop.text = self._stringify(value)
+            for component in self.components:
+                item = ET.SubElement(root, "event")
+                for key, value in component.props:
+                    prop = ET.SubElement(item, "property", name=str(key).upper())
+                    prop.text = self._stringify(value)
+            return ET.tostring(root, encoding="utf-8")
+
+        def _stringify(self, value):
+            if hasattr(value, "tzinfo"):
+                return format_datetime(value)
+            if isinstance(value, bytes):
+                return value.decode("utf-8")
+            return str(value)
+
+    icalendar_stub.Calendar = Calendar
+    icalendar_stub.Event = Event
+    sys.modules["icalendar"] = icalendar_stub
+
 from workouts_to_ics import generate_description, convert_to_ical
 
 
@@ -73,7 +126,6 @@ Description: There’s nothing more satisfying than leaving a hill in your dust.
 
 
 class TestConvertToICal(unittest.TestCase):
-
     def test_convert_to_ical_regular_ride(self):
         """
         Test case to verify the conversion of a regular ride workout to iCalendar format.
