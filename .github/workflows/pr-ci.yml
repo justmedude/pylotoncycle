@@ -29,9 +29,6 @@ jobs:
 
       - name: Check formatting
         run: |
-          python --version
-          black --version
-          black --check --diff examples/workouts_to_ics.py
           black --check .
 
       - name: Run tests
