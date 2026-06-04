@@ -8,10 +8,16 @@ on:
         required: false
         default: "0.9.2"
 
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
   build-n-publish:
     name: Build and publish TestPyPI snapshot
     runs-on: ubuntu-latest
+    environment:
+      name: testpypi
 
     steps:
       - name: Check out repository
@@ -36,7 +42,6 @@ jobs:
       - name: Publish distribution to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          password: ${{ secrets.test_pypi_password }}
           repository-url: https://test.pypi.org/legacy/
 
       - name: Show published version
