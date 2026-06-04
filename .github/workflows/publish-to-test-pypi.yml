@@ -8,9 +8,9 @@ jobs:
     name: Build and publish Python distributions to TestPyPi
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v6
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v6
       with:
         python-version: '3.x'
     - name: Install setuptools and wheel
@@ -21,7 +21,7 @@ jobs:
       run: |
         python3 setup.py sdist bdist_wheel
     - name: Publist distribution to Test PyPI
-      uses: pypa/gh-action-pypi-publish@master
+      uses: pypa/gh-action-pypi-publish@release/v1
       with:
         password: ${{ secrets.test_pypi_password }}
-        repository_url: https://test.pypi.org/legacy/
+        repository-url: https://test.pypi.org/legacy/
