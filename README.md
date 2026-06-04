@@ -4,6 +4,7 @@ Python Library for getting your Peloton workout data.
 ## Table of contents
 * [General info](#general-info)
 * [Example Usage](#example-usage)
+* [Testing](#testing)
 
 ## General info
 As someone who wants to see my progress over time, I've been wanting a way
@@ -177,6 +178,50 @@ This package is available via pip install.
 ```
 pip install pylotoncycle
 ```
+
+## Testing
+
+Run the local unit tests with:
+
+```
+python3 -m unittest discover -s examples/tests -p 'test_*.py'
+```
+
+Run the formatter check used by CI with:
+
+```
+python3 -m black --check .
+```
+
+To smoke test against the real Peloton API, set credentials in your
+environment and run the CSV export example:
+
+```
+export PELOTON_USERNAME='your_username_or_email'
+export PELOTON_PASSWORD='your_password'
+
+python3 examples/workouts_to_csv.py \
+  --path /tmp/pyloton-smoke \
+  --timezone America/Los_Angeles
+```
+
+The command should create `/tmp/pyloton-smoke/workouts.csv` and print the
+number of CSV rows downloaded.
+
+To test a TestPyPI snapshot, install the specific dev version from TestPyPI
+before running the smoke test:
+
+```
+python3 -m venv /tmp/pylotoncycle-smoke
+/tmp/pylotoncycle-smoke/bin/python -m pip install --upgrade pip
+/tmp/pylotoncycle-smoke/bin/python -m pip install \
+  --index-url https://test.pypi.org/simple/ \
+  --extra-index-url https://pypi.org/simple/ \
+  pylotoncycle==0.9.2.dev3
+```
+
+Replace `0.9.2.dev3` with the version printed by the TestPyPI snapshot
+workflow.
 
 ## TODO
 * Lots more to cover. I want to find the right format for pulling in the
