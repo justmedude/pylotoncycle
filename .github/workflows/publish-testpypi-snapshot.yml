@@ -1,0 +1,44 @@
+name: Publish TestPyPI Snapshot
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_version:
+        description: "Base version for the dev snapshot"
+        required: false
+        default: "0.9.2"
+
+jobs:
+  build-n-publish:
+    name: Build and publish TestPyPI snapshot
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set snapshot version
+        run: |
+          VERSION="${{ inputs.base_version }}.dev${GITHUB_RUN_NUMBER}"
+          python scripts/set_version.py "$VERSION"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Build distributions
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build
+
+      - name: Publish distribution to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.test_pypi_password }}
+          repository-url: https://test.pypi.org/legacy/
+
+      - name: Show published version
+        run: |
+          echo "Published pylotoncycle $VERSION to TestPyPI"
