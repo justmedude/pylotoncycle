@@ -1,5 +1,7 @@
 import requests
 
+from .exceptions import PelotonAuthError
+
 
 class AutoRefreshingSession(requests.Session):
     """
@@ -61,13 +63,15 @@ class AutoRefreshingSession(requests.Session):
                 # print(f"Token refresh failed: {e}")
                 # If refresh fails, we return the original 401 response
                 # so the caller knows authentication is truly broken.
-                raise Exception(f"Could not obtain a new bearer token. {e}")
+                raise PelotonAuthError(
+                    f"Could not obtain a new bearer token. {e}"
+                ) from e
 
         return response
 
     def _login(self):
         if not self.username or not self.password:
-            raise Exception(
+            raise PelotonAuthError(
                 "Could not obtain a new bearer token. No login credentials provided. Update your refresh token."
             )
         # print ("Attempting using Username/Password")
@@ -81,7 +85,7 @@ class AutoRefreshingSession(requests.Session):
         resp = requests.post(self.token_url, json=payload, timeout=10)
 
         if resp.status_code != 200:
-            raise Exception(
+            raise PelotonAuthError(
                 "Could not obtain a new bearer token. If using login credentials ensure they are correct. If using a refresh token please update it."
             )
 
@@ -115,7 +119,12 @@ class AutoRefreshingSession(requests.Session):
         resp = requests.post(self.token_url, json=payload, timeout=10)
 
         if resp.status_code != 200:
-            self._login()
+            try:
+                self._login()
+            except PelotonAuthError as e:
+                raise PelotonAuthError(
+                    "Could not refresh access token and fallback login failed."
+                ) from e
             return
         data = resp.json()
         data.update(
