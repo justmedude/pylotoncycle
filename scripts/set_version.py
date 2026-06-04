@@ -4,7 +4,6 @@ import re
 import sys
 from pathlib import Path
 
-
 VERSION_PATTERN = re.compile(r'(__version__\s*=\s*")([^"]+)(")')
 SETUP_VERSION_PATTERN = re.compile(r'(version\s*=\s*")([^"]+)(")')
 
