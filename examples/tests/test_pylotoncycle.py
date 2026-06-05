@@ -173,6 +173,86 @@ class TestPylotonCycle(unittest.TestCase):
             },
         )
 
+    def test_get_following_by_id_uses_defaults(self):
+        client = PylotonCycle.__new__(PylotonCycle)
+        client.base_url = "https://api.example.com"
+        client.userid = "user-1"
+        client.GetUrl = lambda url: {"url": url}
+
+        result = PylotonCycle.GetFollowingById(client)
+
+        self.assertEqual(
+            result,
+            {
+                "url": (
+                    "https://api.example.com/api/user/user-1/"
+                    "following?page=0&limit=20"
+                )
+            },
+        )
+
+    def test_get_following_by_id_accepts_options(self):
+        client = PylotonCycle.__new__(PylotonCycle)
+        client.base_url = "https://api.example.com"
+        client.userid = "user-1"
+        client.GetUrl = lambda url: {"url": url}
+
+        result = PylotonCycle.GetFollowingById(
+            client,
+            userid="user-2",
+            page=2,
+            limit=5,
+            joins="relationship",
+        )
+
+        self.assertEqual(
+            result,
+            {
+                "url": (
+                    "https://api.example.com/api/user/user-2/"
+                    "following?page=2&limit=5&joins=relationship"
+                )
+            },
+        )
+
+    def test_get_activity_calendar_by_id_uses_calendar_endpoint(self):
+        client = PylotonCycle.__new__(PylotonCycle)
+        client.base_url = "https://api.example.com"
+        client.userid = "user-1"
+        client.GetUrl = lambda url: {"url": url}
+
+        result = PylotonCycle.GetActivityCalendarById(
+            client,
+            userid="user-2",
+        )
+
+        self.assertEqual(
+            result,
+            {"url": "https://api.example.com/api/user/user-2/calendar"},
+        )
+
+    def test_get_achievements_by_id_uses_platform_header(self):
+        client = PylotonCycle.__new__(PylotonCycle)
+        client.base_url = "https://api.example.com"
+        client.userid = "user-1"
+        client.s = FakeSession({"categories": []})
+
+        result = PylotonCycle.GetAchievementsById(client)
+
+        self.assertEqual(result, {"categories": []})
+        self.assertEqual(
+            client.s.calls,
+            [
+                (
+                    "https://api.example.com/api/user/user-1/achievements",
+                    {
+                        "timeout": 10,
+                        "headers": {"Peloton-Platform": "web"},
+                    },
+                )
+            ],
+        )
+
     def test_parse_metrics_data_handles_cycling_payload(self):
         client = PylotonCycle.__new__(PylotonCycle)
         metrics_data = {

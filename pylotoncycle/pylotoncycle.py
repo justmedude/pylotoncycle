@@ -141,6 +141,42 @@ class PylotonCycle:
         resp = self.GetUrl(url)
         return resp
 
+    def GetFollowingById(self, userid=None, page=0, limit=20, joins=None):
+        if userid is None:
+            userid = self.userid
+
+        url = "%s/api/user/%s/following?page=%s&limit=%s" % (
+            self.base_url,
+            userid,
+            page,
+            limit,
+        )
+        if joins is not None:
+            url = "%s&joins=%s" % (url, joins)
+
+        resp = self.GetUrl(url)
+        return resp
+
+    def GetActivityCalendarById(self, userid=None):
+        if userid is None:
+            userid = self.userid
+
+        url = "%s/api/user/%s/calendar" % (self.base_url, userid)
+        resp = self.GetUrl(url)
+        return resp
+
+    def GetAchievementsById(self, userid=None):
+        if userid is None:
+            userid = self.userid
+
+        url = "%s/api/user/%s/achievements" % (self.base_url, userid)
+        resp = self.s.get(
+            url,
+            timeout=10,
+            headers={"Peloton-Platform": "web"},
+        ).json()
+        return resp
+
     def GetUrl(self, url):
         resp = self.s.get(url, timeout=10).json()
         return resp
