@@ -3,7 +3,7 @@ from .parser import *
 from .AutoRefreshingSession import AutoRefreshingSession
 from .exceptions import PelotonAuthError, PelotonAPIError, PylotonCycleError
 
-__version__ = "0.9.3"
+__version__ = "0.9.4"
 
 __all__ = [
     "PylotonCycle",
