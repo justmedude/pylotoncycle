@@ -21,6 +21,11 @@ class FakeResponse:
         return self._json_data
 
 
+class InvalidJsonResponse(FakeResponse):
+    def json(self):
+        raise ValueError("not json")
+
+
 class TestAutoRefreshingSession(unittest.TestCase):
     def _make_session(self, **kwargs):
         defaults = {
@@ -50,12 +55,112 @@ class TestAutoRefreshingSession(unittest.TestCase):
             session._login()
 
     @patch.object(auth_session_module.requests, "post")
+    def test_login_with_request_failure_raises_auth_error(self, mock_post):
+        mock_post.side_effect = requests.ConnectionError("network down")
+        session = self._make_session()
+
+        with self.assertRaises(PelotonAuthError):
+            session._login()
+
+    @patch.object(auth_session_module.requests, "post")
+    def test_login_with_invalid_json_raises_auth_error(self, mock_post):
+        mock_post.return_value = InvalidJsonResponse()
+        session = self._make_session()
+
+        with self.assertRaises(PelotonAuthError):
+            session._login()
+
+    @patch.object(auth_session_module.requests, "post")
+    def test_login_with_missing_token_fields_raises_auth_error(
+        self,
+        mock_post,
+    ):
+        mock_post.return_value = FakeResponse(
+            json_data={"access_token": "new-access"}
+        )
+        session = self._make_session()
+
+        with self.assertRaises(PelotonAuthError):
+            session._login()
+
+    @patch.object(auth_session_module.requests, "post")
+    def test_login_updates_auth_state(self, mock_post):
+        mock_post.return_value = FakeResponse(
+            json_data={
+                "access_token": "new-access",
+                "id_token": "new-id",
+                "refresh_token": "new-refresh",
+            }
+        )
+        session = self._make_session()
+
+        session._login()
+
+        self.assertEqual(session.access_token, "new-access")
+        self.assertEqual(session.id_token, "new-id")
+        self.assertEqual(session.last_auth["username"], "user")
+        self.assertEqual(session.last_auth["client_id"], "client")
+
+    @patch.object(auth_session_module.requests, "post")
     def test_refresh_token_falls_back_to_login_failure(self, mock_post):
         mock_post.return_value = FakeResponse(status_code=400)
         session = self._make_session(refresh_token="refresh-token")
 
         with self.assertRaises(PelotonAuthError):
             session._refresh_access_token()
+
+    @patch.object(auth_session_module.requests, "post")
+    def test_refresh_token_with_request_failure_raises_auth_error(
+        self,
+        mock_post,
+    ):
+        mock_post.side_effect = requests.Timeout("timed out")
+        session = self._make_session(refresh_token="refresh-token")
+
+        with self.assertRaises(PelotonAuthError):
+            session._refresh_access_token()
+
+    @patch.object(auth_session_module.requests, "post")
+    def test_refresh_token_with_invalid_json_raises_auth_error(
+        self,
+        mock_post,
+    ):
+        mock_post.return_value = InvalidJsonResponse()
+        session = self._make_session(refresh_token="refresh-token")
+
+        with self.assertRaises(PelotonAuthError):
+            session._refresh_access_token()
+
+    @patch.object(auth_session_module.requests, "post")
+    def test_refresh_token_with_missing_token_fields_raises_auth_error(
+        self,
+        mock_post,
+    ):
+        mock_post.return_value = FakeResponse(
+            json_data={"access_token": "new-access"}
+        )
+        session = self._make_session(refresh_token="refresh-token")
+
+        with self.assertRaises(PelotonAuthError):
+            session._refresh_access_token()
+
+    @patch.object(auth_session_module.requests, "post")
+    def test_refresh_token_updates_auth_state(self, mock_post):
+        mock_post.return_value = FakeResponse(
+            json_data={
+                "access_token": "new-access",
+                "id_token": "new-id",
+                "refresh_token": "new-refresh",
+            }
+        )
+        session = self._make_session(refresh_token="refresh-token")
+
+        session._refresh_access_token()
+
+        self.assertEqual(session.access_token, "new-access")
+        self.assertEqual(session.id_token, "new-id")
+        self.assertEqual(session.last_auth["refresh_token"], "refresh-token")
+        self.assertEqual(session.last_auth["client_id"], "client")
 
     @patch.object(auth_session_module.requests, "post")
     @patch.object(requests.Session, "request")

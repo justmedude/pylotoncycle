@@ -69,6 +69,36 @@ class AutoRefreshingSession(requests.Session):
 
         return response
 
+    def _post_token_request(self, payload, error_message):
+        try:
+            return requests.post(self.token_url, json=payload, timeout=10)
+        except requests.RequestException as e:
+            raise PelotonAuthError(error_message) from e
+
+    def _parse_token_response(self, resp, error_message):
+        try:
+            data = resp.json()
+        except ValueError as e:
+            raise PelotonAuthError(error_message) from e
+
+        missing_fields = [
+            field
+            for field in ("access_token", "id_token")
+            if not data.get(field)
+        ]
+        if missing_fields:
+            raise PelotonAuthError(
+                "%s Missing expected field(s): %s"
+                % (error_message, ", ".join(missing_fields))
+            )
+
+        return data
+
+    def _update_auth_from_token_data(self, data):
+        self.last_auth = data
+        self.access_token = data["access_token"]
+        self.id_token = data["id_token"]
+
     def _login(self):
         if not self.username or not self.password:
             raise PelotonAuthError(
@@ -82,14 +112,17 @@ class AutoRefreshingSession(requests.Session):
             "username": self.username,
             "password": self.password,
         }
-        resp = requests.post(self.token_url, json=payload, timeout=10)
+        error_message = (
+            "Could not obtain a new bearer token. If using login "
+            "credentials ensure they are correct. If using a refresh token "
+            "please update it."
+        )
+        resp = self._post_token_request(payload, error_message)
 
         if resp.status_code != 200:
-            raise PelotonAuthError(
-                "Could not obtain a new bearer token. If using login credentials ensure they are correct. If using a refresh token please update it."
-            )
+            raise PelotonAuthError(error_message)
 
-        data = resp.json()
+        data = self._parse_token_response(resp, error_message)
         data.update(
             {
                 "username": self.username,
@@ -98,9 +131,7 @@ class AutoRefreshingSession(requests.Session):
                 "redirect_uri": self.redirect_uri,
             }
         )
-        self.last_auth = data
-        self.access_token = data["access_token"]
-        self.id_token = data["id_token"]
+        self._update_auth_from_token_data(data)
 
     def _refresh_access_token(self):
         if not self.refresh_token:
@@ -116,7 +147,8 @@ class AutoRefreshingSession(requests.Session):
             "refresh_token": self.refresh_token,
             "redirect_uri": self.redirect_uri,
         }
-        resp = requests.post(self.token_url, json=payload, timeout=10)
+        error_message = "Could not refresh access token."
+        resp = self._post_token_request(payload, error_message)
 
         if resp.status_code != 200:
             try:
@@ -126,7 +158,7 @@ class AutoRefreshingSession(requests.Session):
                     "Could not refresh access token and fallback login failed."
                 ) from e
             return
-        data = resp.json()
+        data = self._parse_token_response(resp, error_message)
         data.update(
             {
                 "username": self.username,
@@ -136,9 +168,7 @@ class AutoRefreshingSession(requests.Session):
                 "redirect_uri": self.redirect_uri,
             }
         )
-        self.last_auth = data
-        self.access_token = data["access_token"]
-        self.id_token = data["id_token"]
+        self._update_auth_from_token_data(data)
 
     def get_auth_info(self):
         return self.last_auth
