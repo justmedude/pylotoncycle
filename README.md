@@ -222,10 +222,10 @@ python3 -m venv /tmp/pylotoncycle-smoke
 /tmp/pylotoncycle-smoke/bin/python -m pip install \
   --index-url https://test.pypi.org/simple/ \
   --extra-index-url https://pypi.org/simple/ \
-  pylotoncycle==0.9.2.dev3
+  pylotoncycle==0.9.3.dev3
 ```
 
-Replace `0.9.2.dev3` with the version printed by the TestPyPI snapshot
+Replace `0.9.3.dev3` with the version printed by the TestPyPI snapshot
 workflow.
 
 ## TODO

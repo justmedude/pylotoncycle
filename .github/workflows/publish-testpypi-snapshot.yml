@@ -6,7 +6,7 @@ on:
       base_version:
         description: "Base version for the dev snapshot"
         required: false
-        default: "0.9.2"
+        default: "0.9.3"
 
 permissions:
   contents: read

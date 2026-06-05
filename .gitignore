@@ -4,3 +4,8 @@ auth.json
 __pycache__/
 *.py[codz]
 *$py.class
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
