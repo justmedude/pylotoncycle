@@ -40,11 +40,16 @@ workouts = conn.GetRecentWorkouts(5)
 for w in workouts:
     workout_id = w['id']
     resp = conn.GetWorkoutMetricsById(workout_id)
-    pprint.pprint(resp)
+    parsed_metrics = conn.ParseMetricsData(resp)
+    pprint.pprint(parsed_metrics)
 
 save_dict(conn.GetAuthInfo())
 ```
 `workouts` is a list of workouts.
+`ParseMetricsData` converts supported performance graph payloads into a
+dictionary keyed by workout offset seconds. Cycling and other metrics-based
+payloads use the `metrics`, `seconds_since_pedaling_start`, and `segment_list`
+fields. Outdoor GPS payloads use `location_data` and `segment_list`.
 
 An example of a list element
 

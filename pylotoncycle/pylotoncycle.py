@@ -5,6 +5,7 @@
 
 from .AutoRefreshingSession import AutoRefreshingSession
 from .exceptions import PelotonAuthError
+from .parser import ParseCyclingMetrics, ParseOutdoorRunMetrics
 
 
 class PelotonLoginException(PelotonAuthError):
@@ -75,6 +76,21 @@ class PylotonCycle:
     def GetSettings(self):
         url = "%s/api/user/%s/settings" % (self.base_url, self.userid)
         resp = self.s.get(url, timeout=10).json()
+        return resp
+
+    def GetUserOverviewById(self, userid=None, version=None):
+        if userid is None:
+            userid = self.userid
+
+        url = "%s/api/user/%s/overview" % (self.base_url, userid)
+        if version is not None:
+            url = "%s?version=%s" % (url, version)
+
+        resp = self.s.get(
+            url,
+            timeout=10,
+            headers={"Peloton-Platform": "web"},
+        ).json()
         return resp
 
     def GetUrl(self, url):
@@ -167,6 +183,11 @@ class PylotonCycle:
         resp = self.GetUrl(url)
         return resp
 
+    def GetRideDetailsById(self, ride_id):
+        url = "%s/api/ride/%s/details" % (self.base_url, ride_id)
+        resp = self.GetUrl(url)
+        return resp
+
     def GetInstructorById(self, instructor_id):
         if instructor_id in self.instructor_id_dict:
             return self.instructor_id_dict[instructor_id]
@@ -184,8 +205,19 @@ class PylotonCycle:
         return resp
 
     def ParseMetricsData(self, metrics_data):
-        # TODO
-        pass
+        if not isinstance(metrics_data, dict):
+            raise ValueError("metrics_data must be a dict")
+
+        if metrics_data.get("location_data"):
+            return ParseOutdoorRunMetrics(metrics_data)
+
+        if (
+            "metrics" in metrics_data
+            and "seconds_since_pedaling_start" in metrics_data
+        ):
+            return ParseCyclingMetrics(metrics_data)
+
+        raise ValueError("Unsupported metrics data shape")
 
 
 if __name__ == "__main__":
