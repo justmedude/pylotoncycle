@@ -93,6 +93,54 @@ class PylotonCycle:
         ).json()
         return resp
 
+    def GetCurrentChallenges(self, has_joined, userid=None):
+        if userid is None:
+            userid = self.userid
+
+        url = "%s/api/user/%s/challenges/current?has_joined=%s" % (
+            self.base_url,
+            userid,
+            str(has_joined).lower(),
+        )
+        resp = self.GetUrl(url)
+        return resp
+
+    def GetUpcomingChallenges(self, has_joined, userid=None):
+        if userid is None:
+            userid = self.userid
+
+        url = "%s/api/user/%s/challenges/upcoming?has_joined=%s" % (
+            self.base_url,
+            userid,
+            str(has_joined).lower(),
+        )
+        resp = self.GetUrl(url)
+        return resp
+
+    def GetChallengeById(self, challenge_id, userid=None):
+        if userid is None:
+            userid = self.userid
+
+        url = "%s/api/user/%s/challenges/%s" % (
+            self.base_url,
+            userid,
+            challenge_id,
+        )
+        resp = self.GetUrl(url)
+        return resp
+
+    def GetChallengeFriendsById(self, challenge_id, userid=None):
+        if userid is None:
+            userid = self.userid
+
+        url = "%s/api/user/%s/challenges/%s/friends" % (
+            self.base_url,
+            userid,
+            challenge_id,
+        )
+        resp = self.GetUrl(url)
+        return resp
+
     def GetUrl(self, url):
         resp = self.s.get(url, timeout=10).json()
         return resp

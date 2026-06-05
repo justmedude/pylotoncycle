@@ -93,6 +93,86 @@ class TestPylotonCycle(unittest.TestCase):
             {"url": "https://api.example.com/api/ride/ride-1/details"},
         )
 
+    def test_get_current_challenges_uses_default_userid(self):
+        client = PylotonCycle.__new__(PylotonCycle)
+        client.base_url = "https://api.example.com"
+        client.userid = "user-1"
+        client.GetUrl = lambda url: {"url": url}
+
+        result = PylotonCycle.GetCurrentChallenges(client, has_joined=True)
+
+        self.assertEqual(
+            result,
+            {
+                "url": (
+                    "https://api.example.com/api/user/user-1/"
+                    "challenges/current?has_joined=true"
+                )
+            },
+        )
+
+    def test_get_upcoming_challenges_accepts_userid(self):
+        client = PylotonCycle.__new__(PylotonCycle)
+        client.base_url = "https://api.example.com"
+        client.userid = "user-1"
+        client.GetUrl = lambda url: {"url": url}
+
+        result = PylotonCycle.GetUpcomingChallenges(
+            client,
+            has_joined=False,
+            userid="user-2",
+        )
+
+        self.assertEqual(
+            result,
+            {
+                "url": (
+                    "https://api.example.com/api/user/user-2/"
+                    "challenges/upcoming?has_joined=false"
+                )
+            },
+        )
+
+    def test_get_challenge_by_id_uses_challenge_endpoint(self):
+        client = PylotonCycle.__new__(PylotonCycle)
+        client.base_url = "https://api.example.com"
+        client.userid = "user-1"
+        client.GetUrl = lambda url: {"url": url}
+
+        result = PylotonCycle.GetChallengeById(client, "challenge-1")
+
+        self.assertEqual(
+            result,
+            {
+                "url": (
+                    "https://api.example.com/api/user/user-1/"
+                    "challenges/challenge-1"
+                )
+            },
+        )
+
+    def test_get_challenge_friends_by_id_uses_friends_endpoint(self):
+        client = PylotonCycle.__new__(PylotonCycle)
+        client.base_url = "https://api.example.com"
+        client.userid = "user-1"
+        client.GetUrl = lambda url: {"url": url}
+
+        result = PylotonCycle.GetChallengeFriendsById(
+            client,
+            "challenge-1",
+            userid="user-2",
+        )
+
+        self.assertEqual(
+            result,
+            {
+                "url": (
+                    "https://api.example.com/api/user/user-2/"
+                    "challenges/challenge-1/friends"
+                )
+            },
+        )
+
     def test_parse_metrics_data_handles_cycling_payload(self):
         client = PylotonCycle.__new__(PylotonCycle)
         metrics_data = {
