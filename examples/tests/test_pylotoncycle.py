@@ -238,6 +238,74 @@ class TestPylotonCycle(unittest.TestCase):
             },
         )
 
+    def test_search_users_uses_default_limit(self):
+        client = PylotonCycle.__new__(PylotonCycle)
+        client.base_url = "https://api.example.com"
+        client.GetUrl = lambda url: {"url": url}
+
+        result = PylotonCycle.SearchUsers(client, "alice")
+
+        self.assertEqual(
+            result,
+            {
+                "url": (
+                    "https://api.example.com/api/user/search"
+                    "?user_query=alice&limit=40"
+                )
+            },
+        )
+
+    def test_get_user_by_id_or_username_accepts_is_onboarded(self):
+        client = PylotonCycle.__new__(PylotonCycle)
+        client.base_url = "https://api.example.com"
+        client.GetUrl = lambda url: {"url": url}
+
+        result = PylotonCycle.GetUserByIdOrUsername(
+            client,
+            "alice",
+            is_onboarded="true",
+        )
+
+        self.assertEqual(
+            result,
+            {
+                "url": (
+                    "https://api.example.com/api/user/alice"
+                    "?is_onboarded=true"
+                )
+            },
+        )
+
+    def test_get_subscriptions_uses_expected_endpoint(self):
+        client = PylotonCycle.__new__(PylotonCycle)
+        client.base_url = "https://api.example.com"
+        client.GetUrl = lambda url: {"url": url}
+
+        result = PylotonCycle.GetSubscriptions(client)
+
+        self.assertEqual(
+            result,
+            {"url": "https://api.example.com/api/v2/user/subscriptions"},
+        )
+
+    def test_get_referral_history_by_id_uses_default_userid(self):
+        client = PylotonCycle.__new__(PylotonCycle)
+        client.base_url = "https://api.example.com"
+        client.userid = "user-1"
+        client.GetUrl = lambda url: {"url": url}
+
+        result = PylotonCycle.GetReferralHistoryById(client)
+
+        self.assertEqual(
+            result,
+            {
+                "url": (
+                    "https://api.example.com/api/user/user-1/"
+                    "referral_history"
+                )
+            },
+        )
+
     def test_get_current_challenges_uses_default_userid(self):
         client = PylotonCycle.__new__(PylotonCycle)
         client.base_url = "https://api.example.com"
