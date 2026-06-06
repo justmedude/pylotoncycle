@@ -225,6 +225,37 @@ class PylotonCycle:
         resp = self.GetUrl(url)
         return resp
 
+    def SearchUsers(self, user_query, limit=40):
+        url = "%s/api/user/search?user_query=%s&limit=%s" % (
+            self.base_url,
+            user_query,
+            limit,
+        )
+        resp = self.GetUrl(url)
+        return resp
+
+    def GetUserByIdOrUsername(self, user_name_or_id, is_onboarded=None):
+        url = "%s/api/user/%s" % (self.base_url, user_name_or_id)
+
+        if is_onboarded is not None:
+            url = "%s?is_onboarded=%s" % (url, is_onboarded)
+
+        resp = self.GetUrl(url)
+        return resp
+
+    def GetSubscriptions(self):
+        url = "%s/api/v2/user/subscriptions" % (self.base_url)
+        resp = self.GetUrl(url)
+        return resp
+
+    def GetReferralHistoryById(self, userid=None):
+        if userid is None:
+            userid = self.userid
+
+        url = "%s/api/user/%s/referral_history" % (self.base_url, userid)
+        resp = self.GetUrl(url)
+        return resp
+
     def GetUrl(self, url):
         resp = self.s.get(url, timeout=10).json()
         return resp
