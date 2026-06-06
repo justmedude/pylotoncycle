@@ -177,6 +177,54 @@ class PylotonCycle:
         ).json()
         return resp
 
+    def GetBrowseCategories(self, library_type="on_demand"):
+        url = "%s/api/browse_categories?library_type=%s" % (
+            self.base_url,
+            library_type,
+        )
+        resp = self.GetUrl(url)
+        return resp
+
+    def GetInstructors(self, page=0, limit=100):
+        url = "%s/api/instructor?page=%s&limit=%s" % (
+            self.base_url,
+            page,
+            limit,
+        )
+        resp = self.GetUrl(url)
+        return resp
+
+    def GetRideMetadataMappings(self):
+        url = "%s/api/ride/metadata_mappings" % (self.base_url)
+        resp = self.GetUrl(url)
+        return resp
+
+    def GetRideFilters(
+        self,
+        library_type=None,
+        browse_category=None,
+        include_icon_images=None,
+    ):
+        url = "%s/api/ride/filters" % (self.base_url)
+        query_params = []
+
+        if library_type is not None:
+            query_params.append("library_type=%s" % library_type)
+
+        if browse_category is not None:
+            query_params.append("browse_category=%s" % browse_category)
+
+        if include_icon_images is not None:
+            query_params.append(
+                "include_icon_images=%s" % str(include_icon_images).lower()
+            )
+
+        if query_params:
+            url = "%s?%s" % (url, "&".join(query_params))
+
+        resp = self.GetUrl(url)
+        return resp
+
     def GetUrl(self, url):
         resp = self.s.get(url, timeout=10).json()
         return resp
