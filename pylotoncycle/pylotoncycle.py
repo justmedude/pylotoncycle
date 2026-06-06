@@ -315,8 +315,140 @@ class PylotonCycle:
         resp = self.GetUrl(url)
         return resp
 
-    def GetRideDetailsById(self, ride_id):
+    def GetRideDetailsById(self, ride_id, stream_source=None):
         url = "%s/api/ride/%s/details" % (self.base_url, ride_id)
+        if stream_source is not None:
+            url = "%s?stream_source=%s" % (url, stream_source)
+        resp = self.GetUrl(url)
+        return resp
+
+    def GetArchivedRides(
+        self,
+        browse_category=None,
+        limit=100,
+        content_format=None,
+        page=0,
+        sort_by=None,
+        is_favorite_ride=None,
+        desc=None,
+        instructor_id=None,
+    ):
+        url = "%s/api/v2/ride/archived" % (self.base_url)
+        query_params = []
+
+        if browse_category is not None:
+            query_params.append("browse_category=%s" % browse_category)
+
+        if limit is not None:
+            query_params.append("limit=%s" % limit)
+
+        if content_format is not None:
+            query_params.append("content_format=%s" % content_format)
+
+        if page is not None:
+            query_params.append("page=%s" % page)
+
+        if sort_by is not None:
+            query_params.append("sort_by=%s" % sort_by)
+
+        if is_favorite_ride is not None:
+            query_params.append(
+                "is_favorite_ride=%s" % str(is_favorite_ride).lower()
+            )
+
+        if desc is not None:
+            query_params.append("desc=%s" % str(desc).lower())
+
+        if instructor_id is not None:
+            query_params.append("instructor_id=%s" % instructor_id)
+
+        if query_params:
+            url = "%s?%s" % (url, "&".join(query_params))
+
+        resp = self.GetUrl(url)
+        return resp
+
+    def GetLiveRides(
+        self,
+        exclude_complete=None,
+        content_provider=None,
+        browse_category=None,
+        start=None,
+        limit=None,
+        end=None,
+        exclude_live_in_studio_only=None,
+        ignore_class_language_preferences=None,
+    ):
+        url = "%s/api/v3/ride/live" % (self.base_url)
+        query_params = []
+
+        if exclude_complete is not None:
+            query_params.append(
+                "exclude_complete=%s" % str(exclude_complete).lower()
+            )
+
+        if content_provider is not None:
+            query_params.append("content_provider=%s" % content_provider)
+
+        if browse_category is not None:
+            query_params.append("browse_category=%s" % browse_category)
+
+        if start is not None:
+            query_params.append("start=%s" % start)
+
+        if limit is not None:
+            query_params.append("limit=%s" % limit)
+
+        if end is not None:
+            query_params.append("end=%s" % end)
+
+        if exclude_live_in_studio_only is not None:
+            query_params.append(
+                "exclude_live_in_studio_only=%s"
+                % str(exclude_live_in_studio_only).lower()
+            )
+
+        if ignore_class_language_preferences is not None:
+            query_params.append(
+                "ignore_class_language_preferences=%s"
+                % str(ignore_class_language_preferences).lower()
+            )
+
+        if query_params:
+            url = "%s?%s" % (url, "&".join(query_params))
+
+        resp = self.GetUrl(url)
+        return resp
+
+    def GetRecentFollowingWorkoutsByRideId(
+        self,
+        ride_id,
+        joins=None,
+        limit=20,
+        page=0,
+        sort_by=None,
+    ):
+        url = "%s/api/ride/%s/recent_following_workouts" % (
+            self.base_url,
+            ride_id,
+        )
+        query_params = []
+
+        if joins is not None:
+            query_params.append("joins=%s" % joins)
+
+        if limit is not None:
+            query_params.append("limit=%s" % limit)
+
+        if page is not None:
+            query_params.append("page=%s" % page)
+
+        if sort_by is not None:
+            query_params.append("sort_by=%s" % sort_by)
+
+        if query_params:
+            url = "%s?%s" % (url, "&".join(query_params))
+
         resp = self.GetUrl(url)
         return resp
 
