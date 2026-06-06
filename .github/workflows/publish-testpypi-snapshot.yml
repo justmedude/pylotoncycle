@@ -6,7 +6,11 @@ on:
       base_version:
         description: "Base version for the dev snapshot"
         required: false
-        default: "0.9.4"
+        default: "0.9.5"
+      dev_version:
+        description: "Dev suffix for the snapshot"
+        required: false
+        default: "1"
 
 permissions:
   contents: read
@@ -30,7 +34,7 @@ jobs:
 
       - name: Set snapshot version
         run: |
-          VERSION="${{ inputs.base_version }}.dev${GITHUB_RUN_NUMBER}"
+          VERSION="${{ inputs.base_version }}.dev${{ inputs.dev_version }}"
           python scripts/set_version.py "$VERSION"
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
