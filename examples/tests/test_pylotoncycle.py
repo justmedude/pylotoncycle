@@ -93,6 +93,151 @@ class TestPylotonCycle(unittest.TestCase):
             {"url": "https://api.example.com/api/ride/ride-1/details"},
         )
 
+    def test_get_ride_details_by_id_accepts_stream_source(self):
+        client = PylotonCycle.__new__(PylotonCycle)
+        client.base_url = "https://api.example.com"
+        client.GetUrl = lambda url: {"url": url}
+
+        result = PylotonCycle.GetRideDetailsById(
+            client,
+            "ride-1",
+            stream_source="web",
+        )
+
+        self.assertEqual(
+            result,
+            {
+                "url": (
+                    "https://api.example.com/api/ride/ride-1/details"
+                    "?stream_source=web"
+                )
+            },
+        )
+
+    def test_get_archived_rides_uses_defaults(self):
+        client = PylotonCycle.__new__(PylotonCycle)
+        client.base_url = "https://api.example.com"
+        client.GetUrl = lambda url: {"url": url}
+
+        result = PylotonCycle.GetArchivedRides(client)
+
+        self.assertEqual(
+            result,
+            {
+                "url": (
+                    "https://api.example.com/api/v2/ride/archived"
+                    "?limit=100&page=0"
+                )
+            },
+        )
+
+    def test_get_archived_rides_supports_query_params(self):
+        client = PylotonCycle.__new__(PylotonCycle)
+        client.base_url = "https://api.example.com"
+        client.GetUrl = lambda url: {"url": url}
+
+        result = PylotonCycle.GetArchivedRides(
+            client,
+            browse_category="cycling",
+            limit=25,
+            content_format="audio",
+            page=3,
+            sort_by="trending",
+            is_favorite_ride=True,
+            desc=False,
+            instructor_id="instructor-1",
+        )
+
+        self.assertEqual(
+            result,
+            {
+                "url": (
+                    "https://api.example.com/api/v2/ride/archived"
+                    "?browse_category=cycling&limit=25&content_format=audio"
+                    "&page=3&sort_by=trending&is_favorite_ride=true"
+                    "&desc=false&instructor_id=instructor-1"
+                )
+            },
+        )
+
+    def test_get_live_rides_supports_query_params(self):
+        client = PylotonCycle.__new__(PylotonCycle)
+        client.base_url = "https://api.example.com"
+        client.GetUrl = lambda url: {"url": url}
+
+        result = PylotonCycle.GetLiveRides(
+            client,
+            exclude_complete=True,
+            content_provider="peloton",
+            browse_category="cycling",
+            start="2026-06-06T00:00:00Z",
+            limit=10,
+            end="2026-06-06T01:00:00Z",
+            exclude_live_in_studio_only=False,
+            ignore_class_language_preferences=True,
+        )
+
+        self.assertEqual(
+            result,
+            {
+                "url": (
+                    "https://api.example.com/api/v3/ride/live"
+                    "?exclude_complete=true&content_provider=peloton"
+                    "&browse_category=cycling&start=2026-06-06T00:00:00Z"
+                    "&limit=10&end=2026-06-06T01:00:00Z"
+                    "&exclude_live_in_studio_only=false"
+                    "&ignore_class_language_preferences=true"
+                )
+            },
+        )
+
+    def test_get_recent_following_workouts_by_ride_id_uses_defaults(self):
+        client = PylotonCycle.__new__(PylotonCycle)
+        client.base_url = "https://api.example.com"
+        client.GetUrl = lambda url: {"url": url}
+
+        result = PylotonCycle.GetRecentFollowingWorkoutsByRideId(
+            client,
+            "ride-1",
+        )
+
+        self.assertEqual(
+            result,
+            {
+                "url": (
+                    "https://api.example.com/api/ride/ride-1/"
+                    "recent_following_workouts?limit=20&page=0"
+                )
+            },
+        )
+
+    def test_get_recent_following_workouts_by_ride_id_supports_query_params(
+        self,
+    ):
+        client = PylotonCycle.__new__(PylotonCycle)
+        client.base_url = "https://api.example.com"
+        client.GetUrl = lambda url: {"url": url}
+
+        result = PylotonCycle.GetRecentFollowingWorkoutsByRideId(
+            client,
+            "ride-1",
+            joins="ride,ride.instructor",
+            limit=5,
+            page=2,
+            sort_by="-created_at",
+        )
+
+        self.assertEqual(
+            result,
+            {
+                "url": (
+                    "https://api.example.com/api/ride/ride-1/"
+                    "recent_following_workouts?joins=ride,ride.instructor"
+                    "&limit=5&page=2&sort_by=-created_at"
+                )
+            },
+        )
+
     def test_get_current_challenges_uses_default_userid(self):
         client = PylotonCycle.__new__(PylotonCycle)
         client.base_url = "https://api.example.com"
