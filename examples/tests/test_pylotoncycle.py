@@ -253,6 +253,74 @@ class TestPylotonCycle(unittest.TestCase):
             ],
         )
 
+    def test_get_browse_categories_uses_default_library_type(self):
+        client = PylotonCycle.__new__(PylotonCycle)
+        client.base_url = "https://api.example.com"
+        client.GetUrl = lambda url: {"url": url}
+
+        result = PylotonCycle.GetBrowseCategories(client)
+
+        self.assertEqual(
+            result,
+            {
+                "url": (
+                    "https://api.example.com/api/browse_categories"
+                    "?library_type=on_demand"
+                )
+            },
+        )
+
+    def test_get_instructors_uses_page_and_limit(self):
+        client = PylotonCycle.__new__(PylotonCycle)
+        client.base_url = "https://api.example.com"
+        client.GetUrl = lambda url: {"url": url}
+
+        result = PylotonCycle.GetInstructors(client, page=2, limit=25)
+
+        self.assertEqual(
+            result,
+            {
+                "url": (
+                    "https://api.example.com/api/instructor?page=2&limit=25"
+                )
+            },
+        )
+
+    def test_get_ride_metadata_mappings_uses_expected_endpoint(self):
+        client = PylotonCycle.__new__(PylotonCycle)
+        client.base_url = "https://api.example.com"
+        client.GetUrl = lambda url: {"url": url}
+
+        result = PylotonCycle.GetRideMetadataMappings(client)
+
+        self.assertEqual(
+            result,
+            {"url": ("https://api.example.com/api/ride/metadata_mappings")},
+        )
+
+    def test_get_ride_filters_supports_optional_query_params(self):
+        client = PylotonCycle.__new__(PylotonCycle)
+        client.base_url = "https://api.example.com"
+        client.GetUrl = lambda url: {"url": url}
+
+        result = PylotonCycle.GetRideFilters(
+            client,
+            library_type="on_demand",
+            browse_category="cycling",
+            include_icon_images=True,
+        )
+
+        self.assertEqual(
+            result,
+            {
+                "url": (
+                    "https://api.example.com/api/ride/filters"
+                    "?library_type=on_demand&browse_category=cycling"
+                    "&include_icon_images=true"
+                )
+            },
+        )
+
     def test_parse_metrics_data_handles_cycling_payload(self):
         client = PylotonCycle.__new__(PylotonCycle)
         metrics_data = {
