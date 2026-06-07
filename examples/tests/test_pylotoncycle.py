@@ -661,6 +661,34 @@ class TestPylotonCycle(unittest.TestCase):
         with self.assertRaises(KeyError):
             ParseOutdoorRunMetrics(payload)
 
+    def test_parse_cycling_metrics_raises_key_error_on_seconds_out_of_duration_bounds(
+        self,
+    ):
+        from pylotoncycle.parser import ParseCyclingMetrics
+
+        payload = {
+            "duration": 10,
+            "segment_list": [],
+            "metrics": [{"slug": "cadence", "values": [80]}],
+            "seconds_since_pedaling_start": [11],  # 11 > 10 duration
+        }
+        with self.assertRaises(KeyError):
+            ParseCyclingMetrics(payload)
+
+    def test_parse_cycling_metrics_handles_empty_metrics_without_adding_segment_key(
+        self,
+    ):
+        from pylotoncycle.parser import ParseCyclingMetrics
+
+        payload = {
+            "duration": 10,
+            "segment_list": [],
+            "metrics": [],
+            "seconds_since_pedaling_start": [0],
+        }
+        result = ParseCyclingMetrics(payload)
+        self.assertEqual(result, {0: {}})
+
 
 if __name__ == "__main__":
     unittest.main()

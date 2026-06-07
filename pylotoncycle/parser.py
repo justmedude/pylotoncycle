@@ -9,6 +9,7 @@ def ParseCyclingMetrics(json_resp):
         if key not in json_resp:
             raise KeyError(key)
 
+    duration = json_resp["duration"]
     segment_dict = {}
     for seg in json_resp["segment_list"]:
         segment_name = seg["name"]
@@ -24,10 +25,15 @@ def ParseCyclingMetrics(json_resp):
     ]
 
     for idx, seconds in enumerate(seconds_since_pedaling_start_list):
+        # Validate that seconds are within range 0..duration to preserve KeyError on out-of-bounds samples
+        if not (0 <= seconds <= duration):
+            raise KeyError(seconds)
+
         entry = {}
-        for slug, values in metrics_cached:
-            entry[slug] = values[idx]
-        entry["segment"] = segment_dict.get(seconds)
+        if metrics_cached:
+            for slug, values in metrics_cached:
+                entry[slug] = values[idx]
+            entry["segment"] = segment_dict.get(seconds)
         perf_dict[seconds] = entry
 
     return perf_dict
