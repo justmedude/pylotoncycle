@@ -1,6 +1,9 @@
 def ParseCyclingMetrics(json_resp):
+    # Ensure fail-fast behavior on missing required fields
+    _ = json_resp["duration"]
+
     segment_dict = {}
-    for seg in json_resp.get("segment_list", []):
+    for seg in json_resp["segment_list"]:
         segment_name = seg["name"]
         start = seg["start_time_offset"]
         end = start + seg["length"]
@@ -8,12 +11,10 @@ def ParseCyclingMetrics(json_resp):
             segment_dict[sec] = segment_name
 
     perf_dict = {}
-    metrics_cached = [
-        (m["slug"], m["values"]) for m in json_resp.get("metrics", [])
+    metrics_cached = [(m["slug"], m["values"]) for m in json_resp["metrics"]]
+    seconds_since_pedaling_start_list = json_resp[
+        "seconds_since_pedaling_start"
     ]
-    seconds_since_pedaling_start_list = json_resp.get(
-        "seconds_since_pedaling_start", []
-    )
 
     for idx, seconds in enumerate(seconds_since_pedaling_start_list):
         entry = {}
@@ -28,18 +29,18 @@ def ParseCyclingMetrics(json_resp):
 def ParseOutdoorRunMetrics(json_resp):
     segment_dict = {
         seg["id"]: (seg["name"], seg["metrics_type"])
-        for seg in json_resp.get("segment_list", [])
+        for seg in json_resp["segment_list"]
     }
 
     perf_dict = {}
-    for location in json_resp.get("location_data", []):
+    for location in json_resp["location_data"]:
         segment_info = segment_dict.get(location["segment_id"])
         if segment_info:
             segment_name, segment_metrics_type = segment_info
         else:
             segment_name = segment_metrics_type = None
 
-        for coordinate in location.get("coordinates", []):
+        for coordinate in location["coordinates"]:
             offset = coordinate["seconds_offset_from_start"]
             coordinate["segment_name"] = segment_name
             coordinate["segment_metrics_type"] = segment_metrics_type

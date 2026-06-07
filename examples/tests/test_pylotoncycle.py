@@ -614,6 +614,24 @@ class TestPylotonCycle(unittest.TestCase):
         with self.assertRaises(ValueError):
             PylotonCycle.ParseMetricsData(client, {"duration": 10})
 
+    def test_parse_cycling_metrics_raises_key_error_on_missing_required_fields(
+        self,
+    ):
+        from pylotoncycle.parser import ParseCyclingMetrics
+
+        with self.assertRaises(KeyError):
+            ParseCyclingMetrics({"segment_list": []})  # Missing duration
+
+    def test_parse_outdoor_run_metrics_raises_key_error_on_missing_required_fields(
+        self,
+    ):
+        from pylotoncycle.parser import ParseOutdoorRunMetrics
+
+        with self.assertRaises(KeyError):
+            ParseOutdoorRunMetrics(
+                {"segment_list": []}
+            )  # Missing location_data
+
 
 if __name__ == "__main__":
     unittest.main()
