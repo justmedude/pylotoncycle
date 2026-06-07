@@ -614,6 +614,81 @@ class TestPylotonCycle(unittest.TestCase):
         with self.assertRaises(ValueError):
             PylotonCycle.ParseMetricsData(client, {"duration": 10})
 
+    def test_parse_cycling_metrics_raises_key_error_on_missing_required_fields(
+        self,
+    ):
+        from pylotoncycle.parser import ParseCyclingMetrics
+
+        with self.assertRaises(KeyError):
+            ParseCyclingMetrics({"segment_list": []})  # Missing duration
+
+    def test_parse_outdoor_run_metrics_raises_key_error_on_missing_required_fields(
+        self,
+    ):
+        from pylotoncycle.parser import ParseOutdoorRunMetrics
+
+        with self.assertRaises(KeyError):
+            ParseOutdoorRunMetrics(
+                {"segment_list": []}
+            )  # Missing location_data
+
+    def test_parse_outdoor_run_metrics_raises_key_error_on_unknown_segment_id(
+        self,
+    ):
+        from pylotoncycle.parser import ParseOutdoorRunMetrics
+
+        payload = {
+            "segment_list": [
+                {
+                    "id": "segment-1",
+                    "name": "Run",
+                    "metrics_type": "outdoor_run",
+                }
+            ],
+            "location_data": [
+                {
+                    "segment_id": "unknown-segment",
+                    "coordinates": [
+                        {
+                            "seconds_offset_from_start": 0,
+                            "latitude": 42.1,
+                            "longitude": -71.2,
+                        }
+                    ],
+                }
+            ],
+        }
+        with self.assertRaises(KeyError):
+            ParseOutdoorRunMetrics(payload)
+
+    def test_parse_cycling_metrics_raises_key_error_on_seconds_out_of_duration_bounds(
+        self,
+    ):
+        from pylotoncycle.parser import ParseCyclingMetrics
+
+        payload = {
+            "duration": 10,
+            "segment_list": [],
+            "metrics": [{"slug": "cadence", "values": [80]}],
+            "seconds_since_pedaling_start": [11],  # 11 > 10 duration
+        }
+        with self.assertRaises(KeyError):
+            ParseCyclingMetrics(payload)
+
+    def test_parse_cycling_metrics_handles_empty_metrics_without_adding_segment_key(
+        self,
+    ):
+        from pylotoncycle.parser import ParseCyclingMetrics
+
+        payload = {
+            "duration": 10,
+            "segment_list": [],
+            "metrics": [],
+            "seconds_since_pedaling_start": [0],
+        }
+        result = ParseCyclingMetrics(payload)
+        self.assertEqual(result, {0: {}})
+
 
 if __name__ == "__main__":
     unittest.main()
