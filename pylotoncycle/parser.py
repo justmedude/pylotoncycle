@@ -1,6 +1,13 @@
 def ParseCyclingMetrics(json_resp):
-    # Ensure fail-fast behavior on missing required fields
-    _ = json_resp["duration"]
+    # Ensure fail-fast behavior on missing required fields from the API payload
+    for key in (
+        "duration",
+        "segment_list",
+        "metrics",
+        "seconds_since_pedaling_start",
+    ):
+        if key not in json_resp:
+            raise KeyError(key)
 
     segment_dict = {}
     for seg in json_resp["segment_list"]:
@@ -27,6 +34,11 @@ def ParseCyclingMetrics(json_resp):
 
 
 def ParseOutdoorRunMetrics(json_resp):
+    # Ensure fail-fast behavior on missing required fields from the API payload
+    for key in ("segment_list", "location_data"):
+        if key not in json_resp:
+            raise KeyError(key)
+
     segment_dict = {
         seg["id"]: (seg["name"], seg["metrics_type"])
         for seg in json_resp["segment_list"]
