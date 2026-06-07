@@ -34,11 +34,9 @@ def ParseOutdoorRunMetrics(json_resp):
 
     perf_dict = {}
     for location in json_resp["location_data"]:
-        segment_info = segment_dict.get(location["segment_id"])
-        if segment_info:
-            segment_name, segment_metrics_type = segment_info
-        else:
-            segment_name = segment_metrics_type = None
+        segment_name, segment_metrics_type = segment_dict[
+            location["segment_id"]
+        ]
 
         for coordinate in location["coordinates"]:
             offset = coordinate["seconds_offset_from_start"]

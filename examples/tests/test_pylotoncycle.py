@@ -632,6 +632,35 @@ class TestPylotonCycle(unittest.TestCase):
                 {"segment_list": []}
             )  # Missing location_data
 
+    def test_parse_outdoor_run_metrics_raises_key_error_on_unknown_segment_id(
+        self,
+    ):
+        from pylotoncycle.parser import ParseOutdoorRunMetrics
+
+        payload = {
+            "segment_list": [
+                {
+                    "id": "segment-1",
+                    "name": "Run",
+                    "metrics_type": "outdoor_run",
+                }
+            ],
+            "location_data": [
+                {
+                    "segment_id": "unknown-segment",
+                    "coordinates": [
+                        {
+                            "seconds_offset_from_start": 0,
+                            "latitude": 42.1,
+                            "longitude": -71.2,
+                        }
+                    ],
+                }
+            ],
+        }
+        with self.assertRaises(KeyError):
+            ParseOutdoorRunMetrics(payload)
+
 
 if __name__ == "__main__":
     unittest.main()
