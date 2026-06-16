@@ -1,4 +1,20 @@
-def ParseCyclingMetrics(json_resp):
+from typing import Any, Dict
+
+
+def ParseCyclingMetrics(
+    json_resp: Dict[str, Any],
+) -> Dict[int, Dict[str, Any]]:
+    """Parses cycling workout metrics from the Peloton API response.
+
+    Args:
+        json_resp: The raw JSON response from the workout performance graph endpoint.
+
+    Returns:
+        A dictionary keyed by seconds since start, containing metrics for that second.
+
+    Raises:
+        KeyError: If required fields are missing from the response.
+    """
     # Ensure fail-fast behavior on missing required fields from the API payload
     for key in (
         "duration",
@@ -25,7 +41,8 @@ def ParseCyclingMetrics(json_resp):
     ]
 
     for idx, seconds in enumerate(seconds_since_pedaling_start_list):
-        # Validate that seconds are within range 0..duration to preserve KeyError on out-of-bounds samples
+        # Validate that seconds are within range 0..duration
+        # to preserve KeyError on out-of-bounds samples
         if not (0 <= seconds <= duration):
             raise KeyError(seconds)
 
@@ -39,14 +56,30 @@ def ParseCyclingMetrics(json_resp):
     return perf_dict
 
 
-def ParseOutdoorRunMetrics(json_resp):
+def ParseOutdoorRunMetrics(
+    json_resp: Dict[str, Any],
+) -> Dict[int, Dict[str, Any]]:
+    """Parses outdoor run metrics from the Peloton API response.
+
+    Args:
+        json_resp: The raw JSON response from the workout performance graph endpoint.
+
+    Returns:
+        A dictionary keyed by seconds offset, containing location and metrics data.
+
+    Raises:
+        KeyError: If required fields are missing from the response.
+    """
     # Ensure fail-fast behavior on missing required fields from the API payload
     for key in ("segment_list", "location_data"):
         if key not in json_resp:
             raise KeyError(key)
 
     segment_dict = {
-        seg["id"]: (seg["name"], seg["metrics_type"])
+        seg["id"]: (
+            seg["name"],
+            seg["metrics_type"],
+        )
         for seg in json_resp["segment_list"]
     }
 

@@ -1,7 +1,11 @@
 from .pylotoncycle import PylotonCycle
-from .parser import *
+from .parser import ParseCyclingMetrics, ParseOutdoorRunMetrics
 from .AutoRefreshingSession import AutoRefreshingSession
-from .exceptions import PelotonAuthError, PelotonAPIError, PylotonCycleError
+from .exceptions import (
+    PelotonAuthError,
+    PelotonAPIError,
+    PylotonCycleError,
+)
 
 __version__ = "0.9.5"
 

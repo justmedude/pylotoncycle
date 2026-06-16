@@ -1,3 +1,6 @@
+"""Custom exceptions for the pylotoncycle library."""
+
+
 class PylotonCycleError(Exception):
     """Base exception for pylotoncycle."""
 

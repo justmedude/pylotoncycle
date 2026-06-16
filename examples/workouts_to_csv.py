@@ -51,7 +51,11 @@ def GetWorkoutCSV(
         raise RuntimeError("Downloaded workouts CSV was empty.")
 
     print(f"Workouts saved to {output_path}")
-    return {"response": resp, "path": output_path, "row_count": row_count}
+    return {
+        "response": resp,
+        "path": output_path,
+        "row_count": row_count,
+    }
 
 
 def main():

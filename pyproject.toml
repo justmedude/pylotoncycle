@@ -1,2 +1,4 @@
 [tool.black]
-line-length = 78
+line-length = 79
+[flake8]
+max-line-length = 88

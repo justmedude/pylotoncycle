@@ -1,24 +1,38 @@
+from typing import Any, Dict, Optional
+
 import requests
 
 from .exceptions import PelotonAuthError
 
 
 class AutoRefreshingSession(requests.Session):
-    """
-    Custom Session that automatically handles OAuth Bearer token injection
-    and refreshes the token when a 401 Unauthorized error occurs.
+    """Custom Session that automatically handles OAuth token management.
+
+    It handles OAuth Bearer token injection and refreshes the token when
+    a 401 Unauthorized error occurs.
     """
 
     def __init__(
         self,
-        username,
-        password,
-        access_token,
-        refresh_token,
-        client_id,
-        redirect_uri,
-        token_url,
-    ):
+        username: Optional[str],
+        password: Optional[str],
+        access_token: Optional[str],
+        refresh_token: Optional[str],
+        client_id: str,
+        redirect_uri: str,
+        token_url: str,
+    ) -> None:
+        """Initializes the session with authentication credentials.
+
+        Args:
+            username: Peloton username or email.
+            password: Peloton password.
+            access_token: Existing OAuth access token.
+            refresh_token: Existing OAuth refresh token.
+            client_id: OAuth client ID.
+            redirect_uri: OAuth redirect URI.
+            token_url: OAuth token endpoint URL.
+        """
         super().__init__()
         self.username = username
         self.password = password
@@ -37,7 +51,22 @@ class AutoRefreshingSession(requests.Session):
             "redirect_uri": redirect_uri,
         }
 
-    def request(self, method, url, *args, **kwargs):
+    def request(
+        self, method: str, url: str, *args: Any, **kwargs: Any
+    ) -> requests.Response:
+        """Constructs and sends a Request.
+
+        Automatically injects the Authorization header and retries on 401.
+
+        Args:
+            method: Method for the new Request object.
+            url: URL for the new Request object.
+            *args: Optional arguments that ``request`` takes.
+            **kwargs: Optional keyword arguments that ``request`` takes.
+
+        Returns:
+            The Response object.
+        """
         # Inject the Authorization header automatically
         headers = kwargs.get("headers") or {}
         if self.access_token:
@@ -69,13 +98,35 @@ class AutoRefreshingSession(requests.Session):
 
         return response
 
-    def _post_token_request(self, payload, error_message):
+    def _post_token_request(
+        self, payload: Dict[str, Any], error_message: str
+    ) -> requests.Response:
+        """Sends a POST request to the token endpoint.
+
+        Args:
+            payload: The JSON payload for the POST request.
+            error_message: Error message to use if the request fails.
+
+        Returns:
+            The Response object.
+        """
         try:
             return requests.post(self.token_url, json=payload, timeout=10)
         except requests.RequestException as e:
             raise PelotonAuthError(error_message) from e
 
-    def _parse_token_response(self, resp, error_message):
+    def _parse_token_response(
+        self, resp: requests.Response, error_message: str
+    ) -> Dict[str, Any]:
+        """Parses the JSON response from the token endpoint.
+
+        Args:
+            resp: The Response object.
+            error_message: Error message to use if parsing fails.
+
+        Returns:
+            The parsed JSON data.
+        """
         try:
             data = resp.json()
         except ValueError as e:
@@ -87,22 +138,30 @@ class AutoRefreshingSession(requests.Session):
             if not data.get(field)
         ]
         if missing_fields:
+            fields_str = ", ".join(missing_fields)
             raise PelotonAuthError(
-                "%s Missing expected field(s): %s"
-                % (error_message, ", ".join(missing_fields))
+                f"{error_message} Missing expected field(s): " f"{fields_str}"
             )
 
         return data
 
-    def _update_auth_from_token_data(self, data):
+    def _update_auth_from_token_data(self, data: Dict[str, Any]) -> None:
+        """Updates internal auth state from token response data.
+
+        Args:
+            data: The parsed token response data.
+        """
         self.last_auth = data
         self.access_token = data["access_token"]
         self.id_token = data["id_token"]
 
-    def _login(self):
+    def _login(self) -> None:
+        """Authenticates using username and password to obtain tokens."""
         if not self.username or not self.password:
             raise PelotonAuthError(
-                "Could not obtain a new bearer token. No login credentials provided. Update your refresh token."
+                "Could not obtain a new bearer token. "
+                "No login credentials provided. "
+                "Update your refresh token."
             )
         # print ("Attempting using Username/Password")
         payload = {
@@ -133,7 +192,8 @@ class AutoRefreshingSession(requests.Session):
         )
         self._update_auth_from_token_data(data)
 
-    def _refresh_access_token(self):
+    def _refresh_access_token(self) -> None:
+        """Refreshes the access token using the refresh token."""
         if not self.refresh_token:
             self._login()
             return
@@ -170,5 +230,10 @@ class AutoRefreshingSession(requests.Session):
         )
         self._update_auth_from_token_data(data)
 
-    def get_auth_info(self):
+    def get_auth_info(self) -> Dict[str, Any]:
+        """Returns the last successfully obtained authentication info.
+
+        Returns:
+            A dictionary containing authentication tokens and credentials.
+        """
         return self.last_auth

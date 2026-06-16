@@ -37,7 +37,9 @@ class TestPylotonCycle(unittest.TestCase):
         self.assertIsNone(result[0]["instructor_name"])
         self.assertEqual(result[0]["performance_graph"], {"x": 1})
 
-    def test_get_user_overview_uses_current_user_and_platform_header(self):
+    def test_get_user_overview_uses_current_user_and_platform_header(
+        self,
+    ):
         client = PylotonCycle.__new__(PylotonCycle)
         client.base_url = "https://api.example.com"
         client.userid = "user-1"
@@ -191,7 +193,9 @@ class TestPylotonCycle(unittest.TestCase):
             },
         )
 
-    def test_get_recent_following_workouts_by_ride_id_uses_defaults(self):
+    def test_get_recent_following_workouts_by_ride_id_uses_defaults(
+        self,
+    ):
         client = PylotonCycle.__new__(PylotonCycle)
         client.base_url = "https://api.example.com"
         client.GetUrl = lambda url: {"url": url}

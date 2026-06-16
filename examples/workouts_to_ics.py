@@ -44,14 +44,17 @@ def parse_command_line():
         help="Number of recent workouts to fetch",
     )
     parser.add_argument(
-        "--input_json", help="Path to input JSON file containing workouts"
+        "--input_json",
+        help="Path to input JSON file containing workouts",
     )
     parser.add_argument(
         "--output_json",
         help="Path to output JSON file for the fetched workouts",
     )
     parser.add_argument(
-        "--calendar_name", default="Peloton Workouts", help="Calendar name"
+        "--calendar_name",
+        default="Peloton Workouts",
+        help="Calendar name",
     )
     parser.add_argument(
         "--debug", action="store_true", help="Enable debug mode"
