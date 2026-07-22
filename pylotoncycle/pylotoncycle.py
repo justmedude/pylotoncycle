@@ -314,9 +314,7 @@ class PylotonCycle:
                 instructor_id = ride_info["instructor_id"]
                 resp_instructor = self.GetInstructorById(instructor_id)
             elif "instructor" in ride_info:
-                resp_instructor = {
-                    "name": ride_info["instructor"]["name"]
-                }
+                resp_instructor = {"name": ride_info["instructor"]["name"]}
 
             resp_workout["performance_graph"] = performance_graph
             try:
