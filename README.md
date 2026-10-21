@@ -45,6 +45,19 @@ for w in workouts:
 
 save_dict(conn.GetAuthInfo())
 ```
+
+To retrieve workout counts for the authenticated user:
+
+```
+# All workouts, including imported third-party activities
+all_counts = conn.GetUserWorkoutCounts()
+print(f"All workouts: {all_counts['total_workouts']}")
+
+# Only Peloton-first-party and partner-third-party workouts
+peloton_counts = conn.GetUserWorkoutCounts(first_party_only=True)
+print(f"Peloton workouts: {peloton_counts['total_workouts']}")
+```
+
 `workouts` is a list of workouts.
 `ParseMetricsData` converts supported performance graph payloads into a
 dictionary keyed by workout offset seconds. Cycling and other metrics-based

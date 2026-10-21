@@ -37,6 +37,56 @@ class TestPylotonCycle(unittest.TestCase):
         self.assertIsNone(result[0]["instructor_name"])
         self.assertEqual(result[0]["performance_graph"], {"x": 1})
 
+    def test_get_user_workout_counts_returns_all_by_default(self):
+        client = PylotonCycle.__new__(PylotonCycle)
+        client.GetUserOverviewById = lambda userid=None, version=None: {
+            "workout_counts": {"total_workouts": 1314, "workouts": []},
+            "first_party_or_partner_3p_workout_counts": {
+                "total_workouts": 945,
+                "workouts": [],
+            },
+        }
+
+        result = PylotonCycle.GetUserWorkoutCounts(client)
+
+        self.assertEqual(result["total_workouts"], 1314)
+
+    def test_get_user_workout_counts_returns_first_party_when_requested(self):
+        client = PylotonCycle.__new__(PylotonCycle)
+        client.GetUserOverviewById = lambda userid=None, version=None: {
+            "workout_counts": {"total_workouts": 1314, "workouts": []},
+            "first_party_or_partner_3p_workout_counts": {
+                "total_workouts": 945,
+                "workouts": [],
+            },
+        }
+
+        result = PylotonCycle.GetUserWorkoutCounts(client, first_party_only=True)
+
+        self.assertEqual(result["total_workouts"], 945)
+
+    def test_get_user_workout_counts_forwards_userid(self):
+        client = PylotonCycle.__new__(PylotonCycle)
+        seen = {}
+
+        def fake_overview(userid=None, version=None):
+            seen["userid"] = userid
+            return {"workout_counts": {"total_workouts": 100, "workouts": []}}
+
+        client.GetUserOverviewById = fake_overview
+
+        PylotonCycle.GetUserWorkoutCounts(client, userid="user-2")
+
+        self.assertEqual(seen["userid"], "user-2")
+
+    def test_get_user_workout_counts_returns_empty_dict_when_key_missing(self):
+        client = PylotonCycle.__new__(PylotonCycle)
+        client.GetUserOverviewById = lambda userid=None, version=None: {}
+
+        result = PylotonCycle.GetUserWorkoutCounts(client)
+
+        self.assertEqual(result, {})
+
     def test_get_user_overview_uses_current_user_and_platform_header(self):
         client = PylotonCycle.__new__(PylotonCycle)
         client.base_url = "https://api.example.com"
