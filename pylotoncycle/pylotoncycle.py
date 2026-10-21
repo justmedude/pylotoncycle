@@ -93,6 +93,31 @@ class PylotonCycle:
         ).json()
         return resp
 
+    def GetUserWorkoutCounts(self, userid=None, first_party_only=False):
+        """Return workout counts from the user's overview.
+
+        By default returns all workouts, including imported third-party
+        activities (e.g. Apple Health). Set first_party_only=True to return
+        only Peloton-first-party and partner-third-party workouts, matching
+        the "Peloton Workouts" toggle on the Peloton profile page.
+
+        Args:
+            userid: Peloton user id. Defaults to the authenticated user.
+            first_party_only: If True, return ``first_party_or_partner_3p_workout_counts``.
+                              If False, return ``workout_counts``.
+
+        Returns:
+            A dict with ``total_workouts`` and a ``workouts`` list, or an empty
+            dict if the count data is unavailable.
+        """
+        overview = self.GetUserOverviewById(userid)
+        key = (
+            "first_party_or_partner_3p_workout_counts"
+            if first_party_only
+            else "workout_counts"
+        )
+        return overview.get(key, {})
+
     def GetCurrentChallenges(self, has_joined, userid=None):
         if userid is None:
             userid = self.userid
